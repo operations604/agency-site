@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page not found | Applied Systems</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=4">
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh; display: grid; place-items: center;
+    background: hsl(220 40% 98%); color: hsl(224 30% 12%);
+    font-family: "Inter", -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; position: relative; overflow: hidden;
+  }
+  .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .45; pointer-events: none; }
+  .b1 { width: 520px; height: 520px; top: -240px; left: -120px;
+        background: radial-gradient(circle at 40% 40%, hsl(245 100% 68% / .5), transparent 65%); }
+  .b2 { width: 460px; height: 460px; bottom: -220px; right: -100px;
+        background: radial-gradient(circle at 40% 40%, hsl(217 91% 56% / .45), transparent 65%); }
+  main { position: relative; text-align: center; padding: 40px 24px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+  .brand img { width: 30px; height: 30px; }
+  .brand b { font-size: 18px; font-weight: 600; letter-spacing: -0.02em; color: hsl(224 30% 12%); }
+  .brand b em { font-style: normal; font-weight: 400; color: hsl(222 14% 42%); }
+  .code { margin-top: 44px; font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 13px; font-weight: 500; letter-spacing: .05em; color: hsl(222 84% 53%); }
+  h1 { margin-top: 12px; font-size: clamp(30px, 5vw, 44px); font-weight: 600;
+    letter-spacing: -0.02em; line-height: 1.08;
+    font-family: "Inter Tight", "Inter", -apple-system, sans-serif; }
+  p { margin: 14px auto 0; max-width: 420px; font-size: 16px; line-height: 1.65;
+    color: hsl(222 14% 42%); }
+  .btn { display: inline-flex; margin-top: 28px; padding: 12px 22px; border-radius: 12px;
+    background: hsl(222 84% 53%); color: #fff; font-size: 15px; font-weight: 500;
+    text-decoration: none; transition: background .2s, box-shadow .2s; }
+  .btn:hover { background: hsl(222 84% 47%); box-shadow: 0 6px 24px -4px hsl(222 84% 53% / .45); }
+</style>
+</head>
+<body>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <main>
+    <a class="brand" href="/">
+      <img src="/favicon.svg?v=4" alt="" width="30" height="30">
+      <b>Applied<em> Systems</em></b>
+    </a>
+    <div class="code">404</div>
+    <h1>This page does not exist.</h1>
+    <p>The page you are looking for was moved, removed, or never built. The homepage has everything.</p>
+    <a class="btn" href="/">Back to the site</a>
+  </main>
+</body>
+</html>
