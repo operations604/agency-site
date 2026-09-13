@@ -9,6 +9,9 @@
     "lint": "oxlint",
     "preview": "vite preview"
   },
+  "engines": {
+    "node": "22"
+  },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",
     "@fontsource/inter-tight": "^5.3.0",
