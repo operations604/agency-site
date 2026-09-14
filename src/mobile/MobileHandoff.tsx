@@ -90,19 +90,19 @@ const PARK = [
   { x: "36vw", y: "18vh", r: -2 },
 ];
 const FINAL_SLOTS = [
-  { x: "-32vw", y: "-34vh", r: -5, s: 0.55, drift: -3 },
-  { x: "33vw", y: "-31vh", r: 4, s: 0.55, drift: -2 },
-  { x: "-34vw", y: "20vh", r: 4, s: 0.52, drift: -3 },
-  { x: "33vw", y: "18vh", r: -4, s: 0.55, drift: -5 },
+  { x: "-36vw", y: "-36vh", r: -5, s: 0.4, drift: -3 },
+  { x: "36vw", y: "-33vh", r: 4, s: 0.4, drift: -2 },
+  { x: "-38vw", y: "22vh", r: 4, s: 0.38, drift: -3 },
+  { x: "36vw", y: "20vh", r: -4, s: 0.4, drift: -5 },
 ];
 
 const SATELLITES = [
-  { id: "slack", x: "0vw", y: "-46vh", r: 2, w: 260, d: 0, drift: -2, from: { x: "0vw", y: "-90vh" } },
-  { id: "calendar", x: "-8vw", y: "32vh", r: -2, w: 270, d: 0.006, drift: -5, from: { x: "-8vw", y: "82vh" } },
-  { id: "quickbooks", x: "-20vw", y: "-22vh", r: 4, w: 240, d: 0.012, drift: -3, from: { x: "-90vw", y: "-22vh" } },
-  { id: "docusign", x: "20vw", y: "-21vh", r: -4, w: 240, d: 0.018, drift: -3, from: { x: "90vw", y: "-21vh" } },
-  { id: "sheets", x: "-18vw", y: "12vh", r: 3, w: 260, d: 0.024, drift: -4, from: { x: "-90vw", y: "12vh" } },
-  { id: "sms", x: "22vw", y: "16vh", r: -3, w: 220, d: 0.03, drift: -3, from: { x: "90vw", y: "16vh" } },
+  { id: "slack", x: "0vw", y: "-48vh", r: 2, w: 300, d: 0, drift: -2, from: { x: "0vw", y: "-90vh" } },
+  { id: "calendar", x: "-4vw", y: "28vh", r: -2, w: 300, d: 0.006, drift: -5, from: { x: "-4vw", y: "82vh" } },
+  { id: "quickbooks", x: "-22vw", y: "-24vh", r: 4, w: 280, d: 0.012, drift: -3, from: { x: "-90vw", y: "-24vh" } },
+  { id: "docusign", x: "22vw", y: "-22vh", r: -4, w: 280, d: 0.018, drift: -3, from: { x: "90vw", y: "-22vh" } },
+  { id: "sheets", x: "-10vw", y: "8vh", r: 2, w: 300, d: 0.024, drift: -4, from: { x: "-90vw", y: "8vh" } },
+  { id: "sms", x: "36vw", y: "6vh", r: -2, w: 240, d: 0.03, drift: -3, from: { x: "90vw", y: "6vh" } },
 ] as const;
 
 const CHIPS = [
@@ -145,7 +145,7 @@ function Stage() {
 
   const [fit, setFit] = useState(1);
   useEffect(() => {
-    const sync = () => setFit(Math.min(1, (window.innerHeight * 0.6) / 540));
+    const sync = () => setFit(Math.min(1, (window.innerHeight * 0.42) / 540));
     sync();
     window.addEventListener("resize", sync);
     return () => window.removeEventListener("resize", sync);
@@ -157,8 +157,8 @@ function Stage() {
     [WAIT, 1, 1, WAIT],
   );
   const centerScrim = useTransform(p, [FINAL, FINAL + 0.06], [WAIT, 1]);
-  const liftY = useTransform(p, [0.88, 1], [0, -180]);
-  const liftOp = useTransform(p, [0.9, 1], [1, 0.45]);
+  const liftY = useTransform(p, [0.94, 1], [0, -56]);
+  const liftOp = useTransform(p, [0.95, 1], [1, 0.7]);
 
   return (
     <section
@@ -297,7 +297,7 @@ function Window({
   return (
     <div
       className="pointer-events-none absolute left-1/2 top-[63%] -translate-x-1/2 -translate-y-1/2"
-      style={{ width: "min(86vw, 440px)", zIndex: 10 + i }}
+      style={{ width: "min(94vw, 520px)", zIndex: 10 + i }}
     >
       <motion.div
         style={{
@@ -313,7 +313,7 @@ function Window({
         }}
       >
         <div className="stage-float" style={{ animationDelay: `${-i * 1.7}s` }}>
-          <PreviewCard>
+          <PreviewCard className="max-h-[46dvh]">
             <div className="relative flex items-center border-b border-border bg-[hsl(220_24%_96%)] px-3 py-2">
               <div className="flex gap-1.5">
                 <span className="size-2.5 rounded-full bg-[#ff5f57]" />
@@ -420,7 +420,7 @@ function Beat({
   return (
     <div
       className={`pointer-events-none absolute inset-x-0 z-30 flex justify-center px-5 ${
-        center ? "inset-y-0 items-center" : "top-[18%]"
+        mark ? "top-[14%]" : center ? "inset-y-0 items-center" : "top-[18%]"
       }`}
     >
       <motion.div

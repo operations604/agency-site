@@ -86,6 +86,33 @@
   mask-image: linear-gradient(to bottom, #000 0%, #000 72%, transparent 100%);
 }
 
+.mobile-plan-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 1.25rem;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.5rem;
+  scrollbar-width: none;
+}
+
+.mobile-plan-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-plan-track {
+  display: flex;
+  gap: 0.75rem;
+  width: max-content;
+  padding-inline: 1.25rem;
+}
+
+.mobile-plan-card {
+  width: min(78vw, 20rem);
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
 .mobile-shell #book {
   padding-top: 0;
   padding-bottom: 3.5rem;

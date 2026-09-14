@@ -151,12 +151,12 @@ const FINAL_SLOTS = [
 const SATELLITES = [
   { id: "slack", x: "-2vw", y: "-51vh", r: 2, w: 340, d: 0, drift: -3, from: { x: "-2vw", y: "-95vh" } },
   // Lower than the centred close copy so the seated mascot never covers the subtitle.
-  { id: "calendar", x: "2vw", y: "33vh", r: -2, w: 360, d: 0.006, drift: -7, from: { x: "2vw", y: "88vh" } },
+  { id: "calendar", x: "1vw", y: "32vh", r: -2, w: 360, d: 0.006, drift: -7, from: { x: "1vw", y: "88vh" } },
   // These four sit over the inner corners of the big windows.
   { id: "quickbooks", x: "-17vw", y: "-24vh", r: 4, w: 320, d: 0.012, drift: -5, from: { x: "-95vw", y: "-24vh" } },
   { id: "docusign", x: "17vw", y: "-23vh", r: -4, w: 320, d: 0.018, drift: -4, from: { x: "95vw", y: "-23vh" } },
-  { id: "sheets", x: "-16vw", y: "10vh", r: 3, w: 380, d: 0.024, drift: -6, from: { x: "-95vw", y: "10vh" } },
-  { id: "sms", x: "18vw", y: "9vh", r: -3, w: 300, d: 0.03, drift: -5, from: { x: "95vw", y: "9vh" } },
+  { id: "sheets", x: "-20vw", y: "8vh", r: 3, w: 400, d: 0.024, drift: -6, from: { x: "-95vw", y: "8vh" } },
+  { id: "sms", x: "30vw", y: "5vh", r: -3, w: 300, d: 0.03, drift: -5, from: { x: "95vw", y: "5vh" } },
 ] as const;
 
 // Three chips per beat, spread around the ring so every beat adds motion in
@@ -250,8 +250,9 @@ function Stage() {
     [WAIT, 1, 1, WAIT],
   );
   const centerScrim = useTransform(p, [FINAL, FINAL + 0.06], [WAIT, 1]);
-  const liftY = useTransform(p, [0.88, 1], [0, -240]);
-  const liftOp = useTransform(p, [0.9, 1], [1, 0.4]);
+  // Close desk holds through ~0.94, then a short lift into the honeycomb.
+  const liftY = useTransform(p, [0.94, 1], [0, -80]);
+  const liftOp = useTransform(p, [0.95, 1], [1, 0.65]);
 
   return (
     <section

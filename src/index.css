@@ -742,37 +742,46 @@
   --desk-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.desk-mascot {
+.desk-mascot-seat {
   position: absolute;
   z-index: 2;
-  right: -8px;
-  bottom: calc(100% - 16px);
-  width: 160px;
-  height: 160px;
+  right: 22px;
+  bottom: calc(100% - 54px);
+  width: 132px;
+  height: 152px;
+  overflow: visible;
   pointer-events: none;
+}
+
+.desk-mascot {
+  position: absolute;
+  right: -10px;
+  bottom: -8px;
+  width: 196px;
+  height: 196px;
   user-select: none;
   object-fit: contain;
   transform: scaleX(-1);
-  transform-origin: 50% 100%;
+  transform-origin: 78% 100%;
 }
 
-.desk-calendar[data-await]:not([data-play]) .desk-mascot {
+.desk-calendar[data-await]:not([data-play]) .desk-mascot-seat {
   opacity: 0;
-  transform: scaleX(-1) translateY(10px);
+  transform: translateY(10px);
 }
 
-.desk-calendar[data-play] .desk-mascot {
+.desk-calendar[data-play] .desk-mascot-seat {
   animation: deskMascotIn 450ms var(--desk-ease) 1.15s both;
 }
 
 @keyframes deskMascotIn {
   from {
     opacity: 0;
-    transform: scaleX(-1) translateY(10px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: scaleX(-1) translateY(0);
+    transform: translateY(0);
   }
 }
 
@@ -835,15 +844,21 @@
   }
 }
 
-.desk-calendar[data-compact] .desk-mascot {
-  top: -8px;
-  right: -42px;
-  bottom: auto;
-  width: 78px;
-  height: 78px;
+.desk-calendar[data-compact] .desk-mascot-seat {
+  right: 16px;
+  bottom: calc(100% - 36px);
+  width: 88px;
+  height: 100px;
   opacity: 1;
   animation: none;
-  transform: scaleX(-1);
+  transform: none;
+}
+
+.desk-calendar[data-compact] .desk-mascot {
+  right: -6px;
+  bottom: -4px;
+  width: 128px;
+  height: 128px;
 }
 
 @keyframes bootSpin {
@@ -962,7 +977,7 @@
   .feed-caret,
   .feed-dots i,
   .stage-float,
-  .desk-mascot,
+  .desk-mascot-seat,
   .desk-sms-bubble,
   .desk-appt-flash,
   .film-grain {
@@ -974,11 +989,11 @@
     transform: none;
   }
 
-  .desk-calendar[data-await]:not([data-play]) .desk-mascot,
-  .desk-mascot,
-  .desk-calendar[data-compact] .desk-mascot {
+  .desk-calendar[data-await]:not([data-play]) .desk-mascot-seat,
+  .desk-mascot-seat,
+  .desk-calendar[data-compact] .desk-mascot-seat {
     opacity: 1;
-    transform: scaleX(-1);
+    transform: none;
   }
 
   .comb-card {

@@ -6,7 +6,7 @@ import BookCallButton from "../components/ui/BookCallButton";
 
 export default function MobilePricing() {
   return (
-    <section id="pricing" className="relative overflow-hidden bg-background py-16">
+    <section id="pricing" className="relative overflow-x-clip bg-background py-16">
       <div aria-hidden className="section-dots" />
       <div className="relative mx-auto max-w-[480px] px-5">
         <motion.div
@@ -30,12 +30,14 @@ export default function MobilePricing() {
             ship.
           </motion.p>
         </motion.div>
+      </div>
 
-        <div className="mt-10 flex flex-col gap-4">
+      <div className="mobile-plan-scroll mt-10">
+        <div className="mobile-plan-track">
           {PLANS.map((plan) => (
             <article
               key={plan.name}
-              className={`flex flex-col rounded-2xl border bg-card p-6 text-left soft-shadow ${
+              className={`mobile-plan-card flex flex-col rounded-2xl border bg-card p-6 text-left soft-shadow ${
                 plan.featured ? "border-primary ring-1 ring-primary/25" : "border-border"
               }`}
             >

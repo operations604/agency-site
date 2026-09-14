@@ -10,9 +10,8 @@ import {
 import { useMotionValueEvent } from "framer-motion";
 import { stageScroll } from "../../lib/stage-scroll";
 
-/** Desk lift starts at 0.88; the strip peeks in the last ~22vh (~0.05 of the
- *  440vh stage). Fire the entrance when that peek actually appears. */
-const JOIN_AT = 0.945;
+/** Desk holds until 0.94, then lifts. Hexes join on that last peek. */
+const JOIN_AT = 0.96;
 
 // Business apps only. Apps not currently on screen sit in a shared free pool;
 // when a cell flips it takes the pool's head and returns its old app to the

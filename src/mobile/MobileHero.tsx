@@ -140,7 +140,7 @@ export default function MobileHero() {
               : { opacity: 0, y: 24, scale: 0.97 }
           }
           transition={{ duration: 0.75, delay: 0.35, ease: EASE }}
-          className="relative w-[min(118vw,720px)]"
+          className="relative w-full max-w-[100vw] overflow-hidden"
         >
           <div
             aria-hidden

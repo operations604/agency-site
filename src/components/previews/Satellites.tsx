@@ -94,17 +94,14 @@ export function CalendarCard({ play = false, compact = false }: DeskStoryProps) 
           ))}
         </div>
       </Frame>
-      {/*
-        Dispatch pose, mirrored: left hand on the calendar, right hand pointing
-        at the SMS card. Rendered outside Frame so overflow:hidden cannot clip it.
-      */}
-      <img
-        src="/robots/robot-dispatch.png"
-        alt=""
-        draggable={false}
-        className="desk-mascot"
-        aria-hidden="true"
-      />
+      <span className="desk-mascot-seat" aria-hidden="true">
+        <img
+          src="/robots/robot-dispatch.png"
+          alt=""
+          draggable={false}
+          className="desk-mascot"
+        />
+      </span>
     </div>
   );
 }
