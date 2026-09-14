@@ -24,8 +24,8 @@ dist-ssr
 *.sln
 *.sw?
 
-# Secrets / local config
-.env
-.env.*
-!.env.example
+# Local-only secrets. `.env` is committed: it only has the public
+# Windmill booking URL Vite inlines at build time.
+.env.local
+.env.*.local
 windmill/**/*.resource.yaml
