@@ -1,6 +1,7 @@
 // Windmill Bun script — path f/applied/booking_availability
 // HTTP: GET /api/r/applied/availability?from=&to=&timezone=
-// Reads "Applied_Bookings".bookings via f/applied/supabase only. Does not touch Webull.
+// Reads "Applied_Bookings".bookings via f/Webull/supabase_postgres.
+// Does not write Webull tables.
 
 import * as wmill from "windmill-client";
 import postgres from "postgres";
@@ -15,7 +16,7 @@ const CONFIG = {
   bufferMinutes: 15,
   minNoticeHours: 12,
   windowDays: 30,
-  supabaseResource: "f/applied/supabase",
+  supabaseResource: "f/Webull/supabase_postgres",
   googleResource: "f/applied/google_calendar",
   calendarId: "primary",
 };

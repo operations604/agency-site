@@ -1,6 +1,7 @@
 // Windmill Bun script — path f/applied/booking_cancel
 // HTTP: POST /api/r/applied/bookings/cancel  (wrap body ON)
 // Marks the booking cancelled, cancels the Google event, frees the slot.
+// Reads/writes "Applied_Bookings".bookings via f/Webull/supabase_postgres.
 
 import * as wmill from "windmill-client";
 import postgres from "postgres";
@@ -9,7 +10,7 @@ const CONFIG = {
   eventTitle: "Applied Systems intro call",
   eventTitles: ["Applied Systems intro call", "Applied Systems — intro call"],
   organizerName: "Applied Systems",
-  supabaseResource: "f/applied/supabase",
+  supabaseResource: "f/Webull/supabase_postgres",
   googleResource: "f/applied/google_calendar",
   calendarId: "primary",
   businessTimezone: "America/New_York",

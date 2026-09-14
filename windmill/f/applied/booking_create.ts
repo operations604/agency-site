@@ -1,6 +1,7 @@
 // Windmill Bun script — path f/applied/booking_create
 // HTTP: POST /api/r/applied/bookings  (wrap body ON)
-// Writes "Applied_Bookings".bookings via f/applied/supabase only. Does not touch Webull.
+// Writes "Applied_Bookings".bookings via f/Webull/supabase_postgres.
+// Does not write Webull tables.
 // Google is optional: missing f/applied/google_calendar still saves the row.
 
 import * as wmill from "windmill-client";
@@ -20,7 +21,7 @@ const CONFIG = {
   maxBooksPerEmailPerHour: 5,
   eventTitle: "Applied Systems intro call",
   organizerName: "Applied Systems",
-  supabaseResource: "f/applied/supabase",
+  supabaseResource: "f/Webull/supabase_postgres",
   googleResource: "f/applied/google_calendar",
   calendarId: "primary",
 };
