@@ -15,6 +15,8 @@ import type {
   BookingApi,
   BookingRequest,
   BookingResult,
+  CancelRequest,
+  CancelResult,
   Slot,
 } from "./booking-api";
 import { getZonedParts, zonedTimeToUtc } from "./tz";
@@ -47,6 +49,7 @@ type StoredBooking = {
   createdAt: string;
   name: string;
   email: string;
+  status: "confirmed" | "cancelled";
 };
 
 function readStore(): StoredBooking[] {
@@ -68,8 +71,12 @@ function writeStore(rows: StoredBooking[]) {
   }
 }
 
+function isHeld(b: StoredBooking): boolean {
+  return b.status !== "cancelled";
+}
+
 function takenStarts(): Set<string> {
-  return new Set(readStore().map((b) => b.startsAt));
+  return new Set(readStore().filter(isHeld).map((b) => b.startsAt));
 }
 
 // ---- Forced failures -----------------------------------------------------
@@ -181,14 +188,10 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 /** Mirrors the client-side rules. Phase 2's server must re-run its own. */
 function validate(req: BookingRequest): Record<string, string> {
   const errors: Record<string, string> = {};
-  const { name, email, company, painPoint } = req.lead;
+  const { name, email } = req.lead;
   if (!name?.trim()) errors.name = "Tell us who we are meeting.";
   if (!email?.trim()) errors.email = "We need an email to send the invite.";
   else if (!EMAIL.test(email.trim())) errors.email = "That email looks off.";
-  if (!company?.trim()) errors.company = "Which company is this for?";
-  if (!painPoint?.trim()) {
-    errors.painPoint = "A sentence is plenty — what is eating your time?";
-  }
   return errors;
 }
 
@@ -298,6 +301,7 @@ export function createMockBookingApi(): BookingApi {
             createdAt: new Date().toISOString(),
             name: "(held by mockfail=slot_taken)",
             email: "",
+            status: "confirmed",
           });
           writeStore(rows);
         }
@@ -319,6 +323,7 @@ export function createMockBookingApi(): BookingApi {
         createdAt: new Date().toISOString(),
         name: req.lead.name,
         email: req.lead.email,
+        status: "confirmed",
       };
       rows.push(booking);
       writeStore(rows);
@@ -331,6 +336,33 @@ export function createMockBookingApi(): BookingApi {
         meetUrl: booking.meetUrl,
         manageToken: booking.manageToken,
       };
+    },
+
+    async cancel(req: CancelRequest): Promise<CancelResult> {
+      await latency();
+      const rows = readStore();
+      const index = rows.findIndex(
+        (b) => b.bookingId === req.bookingId && b.manageToken === req.manageToken,
+      );
+      if (index < 0) {
+        return {
+          ok: false,
+          code: "not_found",
+          message: "We could not find that booking.",
+        };
+      }
+      if (rows[index].status === "cancelled") {
+        return {
+          ok: false,
+          code: "already_cancelled",
+          message: "That call is already cancelled.",
+        };
+      }
+      // Mirrors phase 2: status flips to cancelled so the unique slot index
+      // no longer holds the time, and the calendar event is dropped.
+      rows[index] = { ...rows[index], status: "cancelled" };
+      writeStore(rows);
+      return { ok: true };
     },
   };
 }

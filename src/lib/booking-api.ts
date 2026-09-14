@@ -31,22 +31,11 @@ export type AvailabilityResult = {
   slots: Slot[];
 };
 
-/** The four required fields are non-optional here; the rest are the §4 group. */
+/** Name, work email, and the typed problem. Nothing else. */
 export type BookingLead = {
   name: string;
   email: string;
-  company: string;
   painPoint: string;
-  website?: string;
-  role?: string;
-  phone?: string;
-  teamSize?: string;
-  tools?: string[];
-  hoursLostWeekly?: string;
-  budgetBand?: string;
-  urgency?: string;
-  heardFrom?: string;
-  notes?: string;
 };
 
 /**
@@ -95,9 +84,27 @@ export type BookingResult =
       fieldErrors?: Record<string, string>;
     };
 
+export type CancelRequest = {
+  bookingId: string;
+  manageToken: string;
+};
+
+export type CancelErrorCode = "not_found" | "already_cancelled" | "server_error";
+
+export type CancelResult =
+  | { ok: true }
+  | { ok: false; code: CancelErrorCode; message: string };
+
 export interface BookingApi {
   getAvailability(q: AvailabilityQuery): Promise<AvailabilityResult>;
   book(req: BookingRequest): Promise<BookingResult>;
+  /**
+   * Same outcome as the cancel link on the invite email.
+   * Phase 2 writes `bookings.status = 'cancelled'` in Supabase (the unique
+   * slot index then lets the time be booked again) and deletes or cancels
+   * the Google Calendar event so the slot is free on the real calendar.
+   */
+  cancel(req: CancelRequest): Promise<CancelResult>;
 }
 
 /** How far ahead the UI asks for availability. The server decides the slots. */

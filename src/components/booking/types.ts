@@ -1,28 +1,24 @@
 import type { Slot } from "../../lib/booking-api";
 
-export type BookingStep = 1 | 2 | 3;
+export type BookingStep = 1 | 2 | 3 | 4;
 
 export const STEP_LABELS: Record<BookingStep, string> = {
-  1: "Pick a time",
-  2: "Your details",
-  3: "Confirmed",
+  1: "Time",
+  2: "Who",
+  3: "Problem",
+  4: "Confirmed",
 };
 
-/**
- * Form state. Four required fields, and no more — every extra field
- * costs bookings. Optional extras used to live here; they do not anymore.
- */
+/** Name and email on step 2; the typed problem is optional. */
 export type LeadForm = {
   name: string;
   email: string;
-  company: string;
   painPoint: string;
 };
 
 export const EMPTY_LEAD: LeadForm = {
   name: "",
   email: "",
-  company: "",
   painPoint: "",
 };
 

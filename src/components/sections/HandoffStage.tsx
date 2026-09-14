@@ -28,11 +28,12 @@ import AgentInbox from "../previews/AgentInbox";
     0.13 – 0.20  the intro sentence rides up, dead centre of the stage, its
                  words resolving as it comes (driven by RAW scroll, see below)
     0.227        stage pins with the sentence centred
-    0.22 – 0.25  sentence dissolves; window 1 flies in (perspective tilt),
+    0.24 – 0.28  sentence dissolves; window 1 flies in (perspective tilt),
                  its text rises, chips pop, an accent spotlight warms the backdrop
-    0.395 / 0.54 / 0.685  previous window parks, next one flies in
-    0.83         the closing desk: four apps plus satellite cards fly in from
+    0.36 / 0.48 / 0.6  previous window parks, next one flies in
+    0.72         the closing desk: four apps plus satellite cards fly in from
                  every edge, tilted and overlapping; "This is what we hand you."
+                 The desk then holds until ~0.97 before a short lift into honeycomb.
 
   Two rules that keep the start smooth. Nothing lands before the stage is
   pinned (a window settling into a frame that is still moving reads as
@@ -53,11 +54,11 @@ import AgentInbox from "../previews/AgentInbox";
 
 const GPU = { willChange: "transform, opacity" } as const;
 
-const STAGE_VH = 440;
+const STAGE_VH = 500;
 const OVERLAP_VH = 24;
-const BEAT = 0.145;
-const BEATS = [0.25, 0.395, 0.54, 0.685];
-const FINAL = BEATS[3] + BEAT; // 0.83
+const BEAT = 0.12;
+const BEATS = [0.24, 0.36, 0.48, 0.6];
+const FINAL = BEATS[3] + BEAT; // 0.72
 // Windows sit invisibly at the centre until PRELOAD before their beat, so
 // their textures are rasterized long before they move (see Window).
 const PRELOAD = 0.03;
@@ -136,11 +137,15 @@ const PARK = [
 // has parallax depth while "This is what we hand you" holds in the middle.
 // Positions are relative to the stage anchor (50%, 63%). Outer edges run
 // past the viewport on purpose; inner edges tuck under the centre scrim.
+// The mockup's desk: lead routing and document processing are the two big
+// cards across the top, the ops dashboard and the agent inbox tuck in behind
+// them as the second card in each stack (z below, so only an edge shows),
+// and the bottom band belongs to the satellites.
 const FINAL_SLOTS = [
-  { x: "-33vw", y: "-36vh", r: -5, s: 0.9, drift: -4 },
-  { x: "34vw", y: "-33vh", r: 4, s: 0.9, drift: -3 },
-  { x: "-35vw", y: "17vh", r: 4, s: 0.86, drift: -4 },
-  { x: "34vw", y: "15vh", r: -4, s: 0.9, drift: -6 },
+  { x: "-32vw", y: "-31vh", r: -4, s: 0.88, drift: -3, z: 13 },
+  { x: "32vw", y: "-31vh", r: 4, s: 0.88, drift: -3, z: 13 },
+  { x: "-38vw", y: "-40vh", r: -9, s: 0.50, drift: -2, z: 9 },
+  { x: "38vw", y: "-40vh", r: 9, s: 0.50, drift: -2, z: 9 },
 ];
 
 // Satellite cards: small static app moments (a Slack ping, a calendar hold,
@@ -148,15 +153,18 @@ const FINAL_SLOTS = [
 // the gaps, so the ending reads as a whole company's tooling, not four
 // tiles. Static content, so each is rasterized once. `from` is the edge it
 // enters from; x/y are the resting slot (relative to the stage anchor).
+// Widths are vw-based (px-capped) so the desk holds the mockup's proportions
+// on a 1280 laptop and a 2560 display alike; at fixed px the whole band shrank
+// into the middle of a wide screen and left the bottom third empty.
+// The calendar and the SMS card share a drift so the arrow between them keeps
+// its aim through the closing parallax.
 const SATELLITES = [
-  { id: "slack", x: "-2vw", y: "-51vh", r: 2, w: 340, d: 0, drift: -3, from: { x: "-2vw", y: "-95vh" } },
-  // Lower than the centred close copy so the seated mascot never covers the subtitle.
-  { id: "calendar", x: "1vw", y: "32vh", r: -2, w: 360, d: 0.006, drift: -7, from: { x: "1vw", y: "88vh" } },
-  // These four sit over the inner corners of the big windows.
-  { id: "quickbooks", x: "-17vw", y: "-24vh", r: 4, w: 320, d: 0.012, drift: -5, from: { x: "-95vw", y: "-24vh" } },
-  { id: "docusign", x: "17vw", y: "-23vh", r: -4, w: 320, d: 0.018, drift: -4, from: { x: "95vw", y: "-23vh" } },
-  { id: "sheets", x: "-20vw", y: "8vh", r: 3, w: 400, d: 0.024, drift: -6, from: { x: "-95vw", y: "8vh" } },
-  { id: "sms", x: "30vw", y: "5vh", r: -3, w: 300, d: 0.03, drift: -5, from: { x: "95vw", y: "5vh" } },
+  { id: "slack", x: "0vw", y: "-39vh", r: 2, w: "min(30vw, 540px)", d: 0, drift: -3, from: { x: "0vw", y: "-95vh" } },
+  { id: "calendar", x: "1vw", y: "27vh", r: -2, w: "min(25vw, 460px)", d: 0.006, drift: -3, from: { x: "1vw", y: "92vh" } },
+  { id: "quickbooks", x: "-19vw", y: "-26vh", r: 4, w: "min(25vw, 460px)", d: 0.012, drift: -4, from: { x: "-95vw", y: "-26vh" } },
+  { id: "docusign", x: "19vw", y: "-25vh", r: -4, w: "min(25vw, 460px)", d: 0.018, drift: -4, from: { x: "95vw", y: "-25vh" } },
+  { id: "sheets", x: "-31vw", y: "19vh", r: 2, w: "min(27vw, 500px)", d: 0.024, drift: -3, from: { x: "-95vw", y: "19vh" } },
+  { id: "sms", x: "26vw", y: "16vh", r: -3, w: "min(23vw, 420px)", d: 0.03, drift: -3, from: { x: "95vw", y: "16vh" } },
 ] as const;
 
 // Three chips per beat, spread around the ring so every beat adds motion in
@@ -250,9 +258,9 @@ function Stage() {
     [WAIT, 1, 1, WAIT],
   );
   const centerScrim = useTransform(p, [FINAL, FINAL + 0.06], [WAIT, 1]);
-  // Close desk holds through ~0.94, then a short lift into the honeycomb.
-  const liftY = useTransform(p, [0.94, 1], [0, -80]);
-  const liftOp = useTransform(p, [0.95, 1], [1, 0.65]);
+  // Close desk holds until ~0.97, then a short lift into the honeycomb.
+  const liftY = useTransform(p, [0.97, 1], [0, -64]);
+  const liftOp = useTransform(p, [0.975, 1], [1, 0.7]);
 
   return (
     <section
@@ -302,13 +310,12 @@ function Stage() {
         />
         <motion.div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-[22%] z-20 h-[56%]"
+          className="pointer-events-none absolute inset-x-0 top-[30%] z-20 h-[36%]"
           style={{
             opacity: centerScrim,
             ...GPU,
-            // 26% of the stage = 46.4% of this 56%-tall box.
             background:
-              "radial-gradient(ellipse 48% 46.4% at 50% 50%, hsl(220 40% 99%) 50%, hsl(220 40% 99% / 0.88) 64%, hsl(220 40% 99% / 0.4) 82%, transparent 100%)",
+              "radial-gradient(ellipse 52% 58% at 50% 48%, hsl(220 40% 99%) 46%, hsl(220 40% 99% / 0.86) 64%, hsl(220 40% 99% / 0.35) 82%, transparent 100%)",
           }}
         />
 
@@ -432,7 +439,7 @@ function Window({
   return (
     <div
       className="pointer-events-none absolute left-1/2 top-[63%] -translate-x-1/2 -translate-y-1/2"
-      style={{ width: "min(46vw, 680px)", zIndex: 10 + i }}
+      style={{ width: "min(46vw, 680px)", zIndex: f.z }}
     >
       <motion.div
         style={{
@@ -505,7 +512,10 @@ function Satellite({ p, sat, i }: { p: P; sat: (typeof SATELLITES)[number]; i: n
   return (
     <div
       className="pointer-events-none absolute left-1/2 top-[63%] -translate-x-1/2 -translate-y-1/2 overflow-visible"
-      style={{ width: sat.w, zIndex: sat.id === "calendar" ? 16 : 15 }}
+      style={{
+        width: sat.w,
+        zIndex: sat.id === "calendar" ? 24 : sat.id === "sms" ? 23 : sat.id === "sheets" ? 22 : 15,
+      }}
     >
       <motion.div style={{ x, y, rotate, scale, opacity, ...GPU }}>
         <div className="stage-float overflow-visible" style={{ animationDelay: `${-i * 1.1 - 0.6}s` }}>
@@ -588,7 +598,7 @@ function Beat({
   return (
     <div
       className={`pointer-events-none absolute inset-x-0 z-30 flex justify-center px-8 ${
-        center ? "inset-y-0 items-center" : "top-[11%]"
+        mark ? "top-[38%]" : center ? "inset-y-0 items-center" : "top-[11%]"
       }`}
     >
       <motion.div

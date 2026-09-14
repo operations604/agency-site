@@ -112,9 +112,9 @@ export default function TimezoneSelect({ value, onChange }: Props) {
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`Times shown in ${pretty(value)}. Change timezone`}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2 py-1 text-[13px] text-muted-foreground transition-colors hover:border-border hover:bg-card hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="booking-timezone inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2 py-1 text-[14px] text-muted-foreground transition-colors hover:border-border hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
-        <Globe size={14} aria-hidden />
+        <Globe size={15} aria-hidden />
         <span>
           Times shown in{" "}
           <span className="font-medium text-foreground">{pretty(value)}</span>
@@ -124,7 +124,7 @@ export default function TimezoneSelect({ value, onChange }: Props) {
       </button>
 
       {open && (
-        <div className="absolute bottom-full left-0 z-30 mb-2 w-[290px] overflow-hidden rounded-xl border border-border bg-card soft-shadow-lg">
+        <div className="liquid-glass-menu absolute bottom-full left-0 z-30 mb-2 w-[290px] overflow-hidden">
           <div className="flex items-center gap-2 border-b border-border px-3 py-2">
             <Search size={14} className="shrink-0 text-muted-foreground" aria-hidden />
             <input

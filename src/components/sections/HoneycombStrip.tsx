@@ -10,8 +10,8 @@ import {
 import { useMotionValueEvent } from "framer-motion";
 import { stageScroll } from "../../lib/stage-scroll";
 
-/** Desk holds until 0.94, then lifts. Hexes join on that last peek. */
-const JOIN_AT = 0.96;
+/** Desk holds until 0.97, then lifts. Hexes join on that last peek. */
+const JOIN_AT = 0.975;
 
 // Business apps only. Apps not currently on screen sit in a shared free pool;
 // when a cell flips it takes the pool's head and returns its old app to the
@@ -269,7 +269,7 @@ export default function HoneycombStrip() {
   return (
     <section
       id="connections"
-      className="relative -mt-[22vh] overflow-x-clip pb-6 pt-10"
+      className="relative -mt-[11vh] overflow-x-clip pb-6 pt-10"
       style={{
         background: "linear-gradient(to bottom, transparent, hsl(220 40% 98%) 40%)",
       }}

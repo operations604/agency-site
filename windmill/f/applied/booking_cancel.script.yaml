@@ -1,0 +1,17 @@
+summary: Applied booking cancel
+description: Cancel a booking, free the slot, and drop the Google Calendar event
+kind: script
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    bookingId:
+      type: string
+      originalType: string
+    manageToken:
+      type: string
+      originalType: string
+    body:
+      type: object
+      originalType: object
+  required: []

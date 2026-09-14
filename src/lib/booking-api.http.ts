@@ -2,8 +2,8 @@
 //
 // Selected when VITE_BOOKING_API_URL is set. Nothing here runs in phase 1 —
 // the server it talks to does not exist yet — but the request bodies and the
-// typed error mapping are already correct, so phase 2 implements the two
-// endpoints below and deletes the mock.
+// typed error mapping are already correct, so phase 2 implements the three
+// endpoints below (availability, bookings, bookings/cancel) and deletes the mock.
 //
 // No auth headers: the server holds every secret and this client has none to
 // send. Do not add any without deciding what the server actually checks.
@@ -15,6 +15,8 @@ import type {
   BookingErrorCode,
   BookingRequest,
   BookingResult,
+  CancelRequest,
+  CancelResult,
 } from "./booking-api";
 
 type ServerError = {
@@ -131,6 +133,41 @@ export function createHttpBookingApi(baseUrl: string): BookingApi {
         meetUrl: body.meetUrl ?? null,
         manageToken: body.manageToken ?? "",
       };
+    },
+
+    async cancel(req: CancelRequest): Promise<CancelResult> {
+      const res = await fetch(new URL("bookings/cancel", base).toString(), {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          accept: "application/json",
+        },
+        body: JSON.stringify(req),
+      });
+
+      const body = (await readJson(res)) as
+        | { ok?: boolean; code?: string; message?: string }
+        | null;
+
+      if (!res.ok || body?.ok === false) {
+        const code =
+          body?.code === "not_found" || body?.code === "already_cancelled"
+            ? body.code
+            : "server_error";
+        return {
+          ok: false,
+          code,
+          message:
+            body?.message ||
+            (code === "not_found"
+              ? "We could not find that booking."
+              : code === "already_cancelled"
+                ? "That call is already cancelled."
+                : "We could not cancel that. Try again."),
+        };
+      }
+
+      return { ok: true };
     },
   };
 }

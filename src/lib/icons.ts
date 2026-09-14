@@ -10,6 +10,7 @@ export { default as ArrowRight } from "lucide-react/dist/esm/icons/arrow-right.m
 export { default as Bell } from "lucide-react/dist/esm/icons/bell.mjs";
 export { default as Building2 } from "lucide-react/dist/esm/icons/building-2.mjs";
 export { default as CalendarClock } from "lucide-react/dist/esm/icons/calendar-clock.mjs";
+export { default as CalendarDays } from "lucide-react/dist/esm/icons/calendar-days.mjs";
 export { default as CalendarPlus } from "lucide-react/dist/esm/icons/calendar-plus.mjs";
 export { default as ChartColumn } from "lucide-react/dist/esm/icons/chart-column.mjs";
 export { default as Check } from "lucide-react/dist/esm/icons/check.mjs";
@@ -29,6 +30,7 @@ export { default as LayoutDashboard } from "lucide-react/dist/esm/icons/layout-d
 export { default as LoaderCircle } from "lucide-react/dist/esm/icons/loader-circle.mjs";
 export { default as MapPin } from "lucide-react/dist/esm/icons/map-pin.mjs";
 export { default as MessageSquare } from "lucide-react/dist/esm/icons/message-square.mjs";
+export { default as MoreHorizontal } from "lucide-react/dist/esm/icons/more-horizontal.mjs";
 export { default as Package } from "lucide-react/dist/esm/icons/package.mjs";
 export { default as Phone } from "lucide-react/dist/esm/icons/phone.mjs";
 export { default as Search } from "lucide-react/dist/esm/icons/search.mjs";

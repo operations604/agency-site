@@ -214,6 +214,7 @@ export async function main(from: string, to: string, timezone: string) {
     const taken = await sql<{ date: Date | string; time: string }[]>`
       select date, time
       from "Applied_Bookings".bookings
+      where status is distinct from 'cancelled'
     `;
     const takenSet = new Set(
       taken

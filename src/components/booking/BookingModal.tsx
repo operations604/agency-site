@@ -1,8 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
-import { EASE } from "../../lib/animations";
 import {
   BOOKING_OPEN_EVENT,
   consumeBookingTrigger,
@@ -13,6 +11,56 @@ const BookingCalendar = lazy(() => import("./BookingCalendar"));
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+const SCROLL_KEYS = new Set([
+  "ArrowUp",
+  "ArrowDown",
+  "PageUp",
+  "PageDown",
+  "Home",
+  "End",
+  " ",
+]);
+
+function scrollerFrom(target: EventTarget | null) {
+  return target instanceof Element
+    ? target.closest<HTMLElement>(
+        ".booking-modal-scroll, .booking-times, .liquid-glass-menu",
+      )
+    : null;
+}
+
+function freezePinnedStages() {
+  const restores: Array<() => void> = [];
+  const nodes = document.querySelectorAll<HTMLElement>("#what-we-build .sticky");
+  for (const el of nodes) {
+    const rect = el.getBoundingClientRect();
+    if (rect.bottom < 48 || rect.top > window.innerHeight - 48) continue;
+    const prev = {
+      position: el.style.position,
+      top: el.style.top,
+      left: el.style.left,
+      width: el.style.width,
+      height: el.style.height,
+      zIndex: el.style.zIndex,
+    };
+    el.style.position = "fixed";
+    el.style.top = `${Math.round(rect.top)}px`;
+    el.style.left = `${Math.round(rect.left)}px`;
+    el.style.width = `${Math.round(rect.width)}px`;
+    el.style.height = `${Math.round(rect.height)}px`;
+    el.style.zIndex = "40";
+    restores.push(() => {
+      el.style.position = prev.position;
+      el.style.top = prev.top;
+      el.style.left = prev.left;
+      el.style.width = prev.width;
+      el.style.height = prev.height;
+      el.style.zIndex = prev.zIndex;
+    });
+  }
+  return () => restores.forEach((fn) => fn());
+}
 
 function Skeleton() {
   return (
@@ -55,18 +103,12 @@ function Skeleton() {
 }
 
 export default function BookingModal() {
-  const reduce = useReducedMotion();
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
 
   const [open, setOpen] = useState(false);
-  const [narrow, setNarrow] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(max-width: 639px)").matches,
-  );
 
   const close = useCallback(() => {
     setOpen(false);
@@ -89,28 +131,28 @@ export default function BookingModal() {
   }, [openModal]);
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 639px)");
-    const sync = () => setNarrow(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
-
-  useEffect(() => {
     if (!open) return;
 
     const shell = document.getElementById("app-shell");
     shell?.setAttribute("inert", "");
+    const thaw = freezePinnedStages();
 
-    const html = document.documentElement;
-    const body = document.body;
-    const prevHtmlOverflow = html.style.overflow;
-    const prevBodyOverflow = body.style.overflow;
-    const prevBodyPad = body.style.paddingRight;
-    const gutter = window.innerWidth - html.clientWidth;
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
-    if (gutter > 0) body.style.paddingRight = `${gutter}px`;
+    const onWheel = (e: WheelEvent) => {
+      const scroller = scrollerFrom(e.target);
+      if (!scroller) {
+        e.preventDefault();
+        return;
+      }
+      const top = scroller.scrollTop;
+      const max = scroller.scrollHeight - scroller.clientHeight;
+      if ((e.deltaY < 0 && top <= 0) || (e.deltaY > 0 && top >= max - 1)) {
+        e.preventDefault();
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!scrollerFrom(e.target)) e.preventDefault();
+    };
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -119,6 +161,12 @@ export default function BookingModal() {
         e.preventDefault();
         close();
         return;
+      }
+      if (SCROLL_KEYS.has(e.key) && !scrollerFrom(e.target)) {
+        const tag = e.target instanceof HTMLElement ? e.target.tagName : "";
+        if (tag !== "INPUT" && tag !== "TEXTAREA" && tag !== "SELECT") {
+          e.preventDefault();
+        }
       }
       if (e.key !== "Tab" || !panelRef.current) return;
       const nodes = [
@@ -137,100 +185,76 @@ export default function BookingModal() {
       }
     };
 
+    window.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
     document.addEventListener("keydown", onKey);
     return () => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchmove", onTouchMove);
       document.removeEventListener("keydown", onKey);
       shell?.removeAttribute("inert");
-      html.style.overflow = prevHtmlOverflow;
-      body.style.overflow = prevBodyOverflow;
-      body.style.paddingRight = prevBodyPad;
+      thaw();
       triggerRef.current?.focus();
     };
   }, [open, close]);
 
-  const panelMotion = reduce
-    ? {
-        initial: { opacity: 1 },
-        animate: { opacity: 1 },
-        transition: { duration: 0.16, ease: EASE },
-      }
-    : narrow
-      ? {
-          initial: { y: "100%" },
-          animate: { y: 0 },
-          transition: { type: "spring" as const, bounce: 0, duration: 0.38 },
-        }
-      : {
-          initial: { scale: 0.96, y: 10 },
-          animate: { scale: 1, y: 0 },
-          transition: { duration: 0.22, ease: EASE },
-        };
+  if (!open) return null;
 
   return createPortal(
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          key="booking-layer"
-          className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: reduce ? 0.16 : 0.2, ease: EASE }}
-        >
+    <div className="booking-liquid-layer">
+      <button
+        type="button"
+        aria-label="Close booking"
+        className="booking-liquid-catcher"
+        onClick={close}
+      />
+
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        data-booking-modal
+        className="booking-liquid-frame"
+      >
+        <div className="booking-liquid-material" aria-hidden />
+        <div className="booking-liquid-shine" aria-hidden />
+
+        <div className="booking-glass-bar relative z-10 flex items-center justify-between gap-3 px-4 py-2 sm:px-5">
+          <div className="flex min-w-0 items-center gap-2">
+            <img
+              src="/robots/robot-overview.png"
+              alt=""
+              draggable={false}
+              className="h-8 w-8 shrink-0 object-contain sm:h-9 sm:w-9"
+            />
+            <div className="min-w-0">
+              <h2 id={titleId} className="text-[1.02rem] leading-tight sm:text-[1.08rem]">
+                Book a call
+              </h2>
+              <p className="mt-px text-[12px] leading-tight text-muted-foreground">
+                30 minutes. Pick a time that works.
+              </p>
+            </div>
+          </div>
           <button
+            ref={closeRef}
             type="button"
-            aria-label="Close booking"
-            className="booking-glass-scrim absolute inset-0"
             onClick={close}
-          />
-
-          <motion.div
-            ref={panelRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-            data-booking-modal
-            {...panelMotion}
-            className="booking-glass-panel relative flex max-h-[94dvh] w-full max-w-[920px] flex-col overflow-hidden rounded-t-[22px] sm:max-h-[min(88vh,820px)] sm:rounded-[22px]"
-            style={{ willChange: "transform, opacity" }}
+            aria-label="Close"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted-foreground transition-[color,transform] duration-160 ease-out hover:text-foreground active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
-            <div className="booking-glass-bar flex items-center justify-between gap-4 px-5 py-3.5 sm:px-7">
-              <div className="flex min-w-0 items-center gap-3">
-                <img
-                  src="/robots/robot-overview.png"
-                  alt=""
-                  draggable={false}
-                  className="h-12 w-12 shrink-0 object-contain sm:h-16 sm:w-16"
-                />
-                <div className="min-w-0">
-                  <h2 id={titleId} className="text-[1.2rem] sm:text-[1.35rem]">
-                    Book a call
-                  </h2>
-                  <p className="mt-0.5 text-[14px] text-muted-foreground">
-                    30 minutes. Pick a time that works.
-                  </p>
-                </div>
-              </div>
-              <button
-                ref={closeRef}
-                type="button"
-                onClick={close}
-                aria-label="Close"
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-muted-foreground transition-[background-color,color,transform] duration-160 ease-out hover:bg-muted hover:text-foreground active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                <X size={18} strokeWidth={2} aria-hidden />
-              </button>
-            </div>
+            <X size={16} strokeWidth={2} aria-hidden />
+          </button>
+        </div>
 
-            <div className="booking-modal-scroll min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-7 sm:py-7">
-              <Suspense fallback={<Skeleton />}>
-                <BookingCalendar />
-              </Suspense>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>,
+        <div className="booking-modal-scroll relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-7 sm:py-6">
+          <Suspense fallback={<Skeleton />}>
+            <BookingCalendar />
+          </Suspense>
+        </div>
+      </div>
+    </div>,
     document.body,
   );
 }

@@ -1,6 +1,6 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Download, ExternalLink, TriangleAlert } from "lucide-react";
+import { Download, ExternalLink, LoaderCircle, TriangleAlert } from "lucide-react";
 import { EASE } from "../../lib/animations";
 import type { BookingResult } from "../../lib/booking-api";
 import { formatDayLong, formatTime, zoneAbbrev } from "../../lib/tz";
@@ -8,7 +8,7 @@ import BookingRobot from "./BookingRobot";
 
 type Confirmed = Extract<BookingResult, { ok: true }>;
 
-const EVENT_TITLE = "Applied Systems — intro call";
+const EVENT_TITLE = "Applied Systems intro call";
 
 function stampUtc(iso: string): string {
   return iso.replace(/[-:]/g, "").replace(/\.\d{3}/, "");
@@ -38,6 +38,7 @@ function buildIcs(booking: Confirmed): string {
     `DTSTART:${stampUtc(booking.startsAt)}`,
     `DTEND:${stampUtc(booking.endsAt)}`,
     `SUMMARY:${escapeIcs(EVENT_TITLE)}`,
+    `ORGANIZER;CN=Applied Systems:mailto:hello@appliedsystems.com`,
     `DESCRIPTION:${escapeIcs(description)}`,
     ...(booking.meetUrl ? [`URL:${escapeIcs(booking.meetUrl)}`] : []),
     "END:VEVENT",
@@ -86,6 +87,11 @@ type Props = {
   email: string;
   /** True while the mock adapter is the implementation. */
   isMock: boolean;
+  cancelled: boolean;
+  cancelling: boolean;
+  cancelError: string | null;
+  onCancel: () => void;
+  onBookAgain: () => void;
 };
 
 export default function Confirmation({
@@ -94,8 +100,14 @@ export default function Confirmation({
   locale,
   email,
   isMock,
+  cancelled,
+  cancelling,
+  cancelError,
+  onCancel,
+  onBookAgain,
 }: Props) {
   const reduce = useReducedMotion();
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
 
   const start = Date.parse(booking.startsAt);
   const end = Date.parse(booking.endsAt);
@@ -108,6 +120,31 @@ export default function Confirmation({
   }, [booking]);
 
   useEffect(() => () => URL.revokeObjectURL(icsHref), [icsHref]);
+
+  if (cancelled) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: reduce ? 0 : 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, ease: EASE }}
+        className="mx-auto max-w-[520px] text-center"
+      >
+        <h3 className="text-[1.5rem]">This call is cancelled.</h3>
+        <p className="mt-3 text-[15px] text-muted-foreground">
+          The time is open on the calendar again. Cancelling from the invite
+          email later does the same thing. It updates the booking and frees
+          the slot.
+        </p>
+        <button
+          type="button"
+          onClick={onBookAgain}
+          className="mt-7 inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 text-[15px] font-medium text-primary-foreground transition-[background-color,box-shadow,transform] duration-160 ease-out hover:bg-primary/90 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          Book another time
+        </button>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -165,7 +202,7 @@ export default function Confirmation({
         <div className="mt-8 rounded-xl border border-border bg-muted/70 px-4 py-3 text-left">
           <p className="flex items-start gap-2 text-[14px] font-semibold text-foreground">
             <TriangleAlert size={15} className="mt-0.5 shrink-0" aria-hidden />
-            Demo booking — nothing was sent
+            Demo booking. Nothing was sent.
           </p>
           <p className="mt-1 pl-[23px] text-[13px] leading-[1.6] text-muted-foreground">
             This site is running the phase 1 mock adapter. The booking is saved
@@ -177,9 +214,66 @@ export default function Confirmation({
       ) : (
         <p className="mt-8 text-[15px] text-muted-foreground">
           A calendar invite is on its way to{" "}
-          <span className="font-medium text-foreground">{email}</span>.
+          <span className="font-medium text-foreground">{email}</span>. Cancel
+          from that email later and it updates the booking and frees the
+          calendar slot, same as cancelling here.
         </p>
       )}
+
+      <div className="mt-8 border-t border-border pt-6">
+        {confirmingCancel ? (
+          <div>
+            <p className="text-[15px] text-foreground">
+              Cancel this call? The time goes back on the calendar.
+            </p>
+            {isMock ? (
+              <p className="mt-1.5 text-[13px] text-muted-foreground">
+                When invite email ships, cancelling from the email does the
+                same: it marks the booking cancelled and opens the slot.
+              </p>
+            ) : (
+              <p className="mt-1.5 text-[13px] text-muted-foreground">
+                The invite email has the same cancel link. Either path updates
+                the booking and frees the slot.
+              </p>
+            )}
+            {cancelError && (
+              <p className="mt-3 text-[13px] font-medium text-foreground">
+                {cancelError}
+              </p>
+            )}
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={cancelling}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:border-foreground/30 disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                {cancelling && (
+                  <LoaderCircle size={16} className="boot-spin" aria-hidden />
+                )}
+                {cancelling ? "Cancelling…" : "Yes, cancel it"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmingCancel(false)}
+                disabled={cancelling}
+                className="rounded-xl px-2 py-2.5 text-[15px] text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                Keep the call
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirmingCancel(true)}
+            className="text-[14px] font-medium text-muted-foreground underline-offset-2 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            Cancel this call
+          </button>
+        )}
+      </div>
     </motion.div>
   );
 }

@@ -18,10 +18,10 @@ import AgentInbox from "../components/previews/AgentInbox";
 
 const GPU = { willChange: "transform, opacity" } as const;
 
-const STAGE_VH = 400;
+const STAGE_VH = 460;
 const OVERLAP_VH = 24;
-const BEAT = 0.145;
-const BEATS = [0.25, 0.395, 0.54, 0.685];
+const BEAT = 0.12;
+const BEATS = [0.24, 0.36, 0.48, 0.6];
 const FINAL = BEATS[3] + BEAT;
 const PRELOAD = 0.03;
 const WAIT = 1 / 255;
@@ -89,20 +89,26 @@ const PARK = [
   { x: "-36vw", y: "18vh", r: 2 },
   { x: "36vw", y: "18vh", r: -2 },
 ];
+// Same desk as the mockup, read top to bottom on a phone: the two big app
+// windows across the top with the other two stacked behind them, then the
+// copy, then the leads / calendar / messages band. Everything stays inside
+// (or only just past) the frame instead of scattering off both edges.
 const FINAL_SLOTS = [
-  { x: "-36vw", y: "-36vh", r: -5, s: 0.4, drift: -3 },
-  { x: "36vw", y: "-33vh", r: 4, s: 0.4, drift: -2 },
-  { x: "-38vw", y: "22vh", r: 4, s: 0.38, drift: -3 },
-  { x: "36vw", y: "20vh", r: -4, s: 0.4, drift: -5 },
+  { x: "-30vw", y: "-38vh", r: -4, s: 0.74, drift: -2, z: 13 },
+  { x: "30vw", y: "-38vh", r: 4, s: 0.74, drift: -2, z: 13 },
+  { x: "-36vw", y: "-45vh", r: -9, s: 0.42, drift: -1, z: 9 },
+  { x: "36vw", y: "-45vh", r: 9, s: 0.42, drift: -1, z: 9 },
 ];
 
+// vw widths, so the band scales with the phone rather than overflowing a
+// small one. Calendar and SMS share a drift to hold the arrow's aim.
 const SATELLITES = [
-  { id: "slack", x: "0vw", y: "-48vh", r: 2, w: 300, d: 0, drift: -2, from: { x: "0vw", y: "-90vh" } },
-  { id: "calendar", x: "-4vw", y: "28vh", r: -2, w: 300, d: 0.006, drift: -5, from: { x: "-4vw", y: "82vh" } },
-  { id: "quickbooks", x: "-22vw", y: "-24vh", r: 4, w: 280, d: 0.012, drift: -3, from: { x: "-90vw", y: "-24vh" } },
-  { id: "docusign", x: "22vw", y: "-22vh", r: -4, w: 280, d: 0.018, drift: -3, from: { x: "90vw", y: "-22vh" } },
-  { id: "sheets", x: "-10vw", y: "8vh", r: 2, w: 300, d: 0.024, drift: -4, from: { x: "-90vw", y: "8vh" } },
-  { id: "sms", x: "36vw", y: "6vh", r: -2, w: 240, d: 0.03, drift: -3, from: { x: "90vw", y: "6vh" } },
+  { id: "slack", x: "0vw", y: "-44vh", r: 2, w: "min(76vw, 300px)", d: 0, drift: -2, from: { x: "0vw", y: "-90vh" } },
+  { id: "calendar", x: "-8vw", y: "27vh", r: -2, w: "min(62vw, 245px)", d: 0.006, drift: -2, from: { x: "-8vw", y: "90vh" } },
+  { id: "quickbooks", x: "-21vw", y: "-31vh", r: 4, w: "min(56vw, 220px)", d: 0.012, drift: -2, from: { x: "-90vw", y: "-31vh" } },
+  { id: "docusign", x: "21vw", y: "-29vh", r: -4, w: "min(56vw, 220px)", d: 0.018, drift: -2, from: { x: "90vw", y: "-29vh" } },
+  { id: "sheets", x: "-25vw", y: "14vh", r: 2, w: "min(60vw, 240px)", d: 0.024, drift: -2, from: { x: "-90vw", y: "14vh" } },
+  { id: "sms", x: "26vw", y: "7vh", r: -3, w: "min(56vw, 225px)", d: 0.03, drift: -2, from: { x: "90vw", y: "7vh" } },
 ] as const;
 
 const CHIPS = [
@@ -157,8 +163,8 @@ function Stage() {
     [WAIT, 1, 1, WAIT],
   );
   const centerScrim = useTransform(p, [FINAL, FINAL + 0.06], [WAIT, 1]);
-  const liftY = useTransform(p, [0.94, 1], [0, -56]);
-  const liftOp = useTransform(p, [0.95, 1], [1, 0.7]);
+  const liftY = useTransform(p, [0.97, 1], [0, -40]);
+  const liftOp = useTransform(p, [0.975, 1], [1, 0.75]);
 
   return (
     <section
@@ -196,12 +202,12 @@ function Stage() {
           />
           <motion.div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-[22%] z-20 h-[56%]"
+            className="pointer-events-none absolute inset-x-0 top-[28%] z-20 h-[38%]"
             style={{
               opacity: centerScrim,
               ...GPU,
               background:
-                "radial-gradient(ellipse 62% 48% at 50% 50%, hsl(220 40% 99%) 46%, hsl(220 40% 99% / 0.86) 64%, transparent 100%)",
+                "radial-gradient(ellipse 70% 58% at 50% 46%, hsl(220 40% 99%) 46%, hsl(220 40% 99% / 0.86) 64%, transparent 100%)",
             }}
           />
 
@@ -297,7 +303,7 @@ function Window({
   return (
     <div
       className="pointer-events-none absolute left-1/2 top-[63%] -translate-x-1/2 -translate-y-1/2"
-      style={{ width: "min(94vw, 520px)", zIndex: 10 + i }}
+      style={{ width: "min(94vw, 520px)", zIndex: f.z }}
     >
       <motion.div
         style={{
@@ -313,7 +319,7 @@ function Window({
         }}
       >
         <div className="stage-float" style={{ animationDelay: `${-i * 1.7}s` }}>
-          <PreviewCard className="max-h-[46dvh]">
+          <PreviewCard className="max-h-[54dvh]">
             <div className="relative flex items-center border-b border-border bg-[hsl(220_24%_96%)] px-3 py-2">
               <div className="flex gap-1.5">
                 <span className="size-2.5 rounded-full bg-[#ff5f57]" />
@@ -349,7 +355,10 @@ function Satellite({ p, sat, i }: { p: P; sat: (typeof SATELLITES)[number]; i: n
   return (
     <div
       className="pointer-events-none absolute left-1/2 top-[63%] -translate-x-1/2 -translate-y-1/2 overflow-visible"
-      style={{ width: sat.w, zIndex: sat.id === "calendar" ? 16 : 15 }}
+      style={{
+        width: sat.w,
+        zIndex: sat.id === "calendar" ? 16 : 15,
+      }}
     >
       <motion.div style={{ x, y, rotate, scale, opacity, ...GPU }}>
         <div className="stage-float overflow-visible" style={{ animationDelay: `${-i * 1.1 - 0.6}s` }}>
@@ -420,7 +429,7 @@ function Beat({
   return (
     <div
       className={`pointer-events-none absolute inset-x-0 z-30 flex justify-center px-5 ${
-        mark ? "top-[14%]" : center ? "inset-y-0 items-center" : "top-[18%]"
+        mark ? "top-[36%]" : center ? "inset-y-0 items-center" : "top-[18%]"
       }`}
     >
       <motion.div

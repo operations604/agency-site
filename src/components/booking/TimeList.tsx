@@ -26,7 +26,7 @@ function SkeletonPills() {
   return (
     <div className="mt-4 grid gap-2" aria-hidden>
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-11 animate-pulse rounded-xl bg-muted" />
+        <div key={i} className="h-12 animate-pulse rounded-xl bg-muted" />
       ))}
     </div>
   );
@@ -83,8 +83,8 @@ export default function TimeList({
 
   return (
     <div>
-      <h4 className="text-[17px] font-semibold">{dayLabel}</h4>
-      <p className="font-mono-label mt-1 text-[11px] text-muted-foreground">
+      <h4 className="text-[18px] font-semibold">{dayLabel}</h4>
+      <p className="font-mono-label mt-1 text-[12px] text-muted-foreground">
         {slotMinutes} min call
       </p>
 
@@ -115,7 +115,7 @@ export default function TimeList({
           initial="hidden"
           animate="visible"
           // Tall days scroll inside the pane rather than stretching it.
-          className="mt-4 grid gap-2 min-[900px]:max-h-[336px] min-[900px]:overflow-y-auto min-[900px]:pr-1"
+          className="booking-times mt-4 grid gap-2.5 min-[900px]:max-h-[400px] min-[900px]:overflow-y-auto min-[900px]:pr-1"
         >
           {slots.map((slot) => {
             const selected = slot.startsAt === selectedStartsAt;
@@ -126,10 +126,10 @@ export default function TimeList({
                   type="button"
                   onClick={() => onSelect(slot)}
                   aria-pressed={selected}
-                  className={`w-full rounded-xl border px-4 py-2.5 text-left font-mono text-[14px] tabular-nums transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                  className={`booking-slot w-full rounded-xl border px-4 py-3 text-left font-mono text-[15px] tabular-nums transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                     selected
                       ? "border-primary bg-primary font-semibold text-primary-foreground"
-                      : "border-border bg-white/80 text-foreground hover:border-primary/40 hover:bg-white"
+                      : "border-border/80 bg-transparent text-foreground hover:border-primary/40"
                   }`}
                 >
                   {formatTime(start, timezone, locale)}

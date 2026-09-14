@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { LoaderCircle, TriangleAlert } from "lucide-react";
+import { ArrowLeft, TriangleAlert } from "lucide-react";
 import type { LeadForm } from "./types";
 
 export type FormBanner = {
@@ -12,7 +12,7 @@ export type FormBanner = {
 type Props = {
   value: LeadForm;
   onChange: (patch: Partial<LeadForm>) => void;
-  onSubmit: () => void;
+  onContinue: () => void;
   onBack: () => void;
   submitting: boolean;
   fieldErrors: Record<string, string>;
@@ -21,41 +21,54 @@ type Props = {
   onHoneypotChange: (value: string) => void;
 };
 
-const inputClass =
-  "w-full rounded-xl border bg-card px-3.5 py-2.5 text-[15px] text-foreground transition-colors placeholder:text-muted-foreground/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-60";
+export function BookingBanner({ banner }: { banner: FormBanner }) {
+  return (
+    <div
+      role="alert"
+      className="mb-5 rounded-xl border border-border bg-muted px-4 py-3"
+    >
+      <p className="flex items-start gap-2 text-[15px] font-semibold text-foreground">
+        <TriangleAlert size={16} className="mt-0.5 shrink-0" aria-hidden />
+        {banner.title}
+      </p>
+      <p className="mt-1 pl-6 text-[14px] text-muted-foreground">
+        {banner.body}
+      </p>
+      {banner.onRetry && (
+        <button
+          type="button"
+          onClick={banner.onRetry}
+          className="ml-6 mt-2 rounded-lg text-[14px] font-medium text-primary underline underline-offset-2 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          {banner.retryLabel ?? "Try again"}
+        </button>
+      )}
+    </div>
+  );
+}
 
-function Field({
+function LineField({
   label,
   error,
-  hint,
   children,
 }: {
   label: string;
   error?: string;
-  hint?: string;
   children: (ids: { id: string; describedBy?: string }) => React.ReactNode;
 }) {
   const id = useId();
   const errorId = `${id}-error`;
-  const hintId = `${id}-hint`;
-  const describedBy =
-    [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(" ") ||
-    undefined;
+  const describedBy = error ? errorId : undefined;
 
   return (
     <div>
       <label
         htmlFor={id}
-        className="mb-1.5 block text-[14px] font-medium text-foreground"
+        className="block text-[13px] font-medium text-muted-foreground"
       >
         {label}
       </label>
       {children({ id, describedBy })}
-      {hint && (
-        <p id={hintId} className="mt-1 text-[13px] text-muted-foreground">
-          {hint}
-        </p>
-      )}
       {error && (
         <p
           id={errorId}
@@ -72,7 +85,7 @@ function Field({
 export default function DetailsForm({
   value,
   onChange,
-  onSubmit,
+  onContinue,
   onBack,
   submitting,
   fieldErrors,
@@ -80,118 +93,54 @@ export default function DetailsForm({
   honeypot,
   onHoneypotChange,
 }: Props) {
-  const border = (field: keyof LeadForm) =>
-    fieldErrors[field] ? "border-foreground/45" : "border-border";
-
   return (
     <form
       noValidate
       onSubmit={(e) => {
         e.preventDefault();
-        if (!submitting) onSubmit();
+        if (!submitting) onContinue();
       }}
     >
-      {banner && (
-        <div
-          role="alert"
-          className="mb-5 rounded-xl border border-border bg-muted px-4 py-3"
-        >
-          <p className="flex items-start gap-2 text-[15px] font-semibold text-foreground">
-            <TriangleAlert size={16} className="mt-0.5 shrink-0" aria-hidden />
-            {banner.title}
-          </p>
-          <p className="mt-1 pl-6 text-[14px] text-muted-foreground">
-            {banner.body}
-          </p>
-          {banner.onRetry && (
-            <button
-              type="button"
-              onClick={banner.onRetry}
-              className="ml-6 mt-2 rounded-lg text-[14px] font-medium text-primary underline underline-offset-2 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              {banner.retryLabel ?? "Try again"}
-            </button>
-          )}
-        </div>
-      )}
+      {banner && <BookingBanner banner={banner} />}
 
-      <fieldset disabled={submitting} className="grid gap-4 sm:grid-cols-2">
-        <legend className="sr-only">Your details</legend>
+      <fieldset disabled={submitting} className="grid gap-8">
+        <legend className="sr-only">Who are we talking to</legend>
 
-        <Field label="Full name" error={fieldErrors.name}>
+        <LineField label="Full name" error={fieldErrors.name}>
           {({ id, describedBy }) => (
             <input
               id={id}
               name="name"
               type="text"
               autoComplete="name"
+              autoCapitalize="words"
               value={value.name}
               aria-required
               aria-invalid={Boolean(fieldErrors.name)}
               aria-describedby={describedBy}
               onChange={(e) => onChange({ name: e.target.value })}
-              className={`${inputClass} ${border("name")}`}
+              className={`booking-line ${fieldErrors.name ? "booking-line-error" : ""}`}
             />
           )}
-        </Field>
+        </LineField>
 
-        <Field label="Work email" error={fieldErrors.email}>
+        <LineField label="Work email" error={fieldErrors.email}>
           {({ id, describedBy }) => (
             <input
               id={id}
               name="email"
               type="email"
               autoComplete="email"
+              inputMode="email"
               value={value.email}
               aria-required
               aria-invalid={Boolean(fieldErrors.email)}
               aria-describedby={describedBy}
               onChange={(e) => onChange({ email: e.target.value })}
-              className={`${inputClass} ${border("email")}`}
+              className={`booking-line ${fieldErrors.email ? "booking-line-error" : ""}`}
             />
           )}
-        </Field>
-
-        <div className="sm:col-span-2">
-          <Field label="Company" error={fieldErrors.company}>
-            {({ id, describedBy }) => (
-              <input
-                id={id}
-                name="company"
-                type="text"
-                autoComplete="organization"
-                value={value.company}
-                aria-required
-                aria-invalid={Boolean(fieldErrors.company)}
-                aria-describedby={describedBy}
-                onChange={(e) => onChange({ company: e.target.value })}
-                className={`${inputClass} ${border("company")}`}
-              />
-            )}
-          </Field>
-        </div>
-
-        <div className="sm:col-span-2">
-          <Field
-            label="What's eating your time?"
-            error={fieldErrors.painPoint}
-            hint="The work you wish nobody had to do by hand. A sentence is plenty."
-          >
-            {({ id, describedBy }) => (
-              <textarea
-                id={id}
-                name="painPoint"
-                rows={4}
-                value={value.painPoint}
-                aria-required
-                aria-invalid={Boolean(fieldErrors.painPoint)}
-                aria-describedby={describedBy}
-                onChange={(e) => onChange({ painPoint: e.target.value })}
-                className={`${inputClass} ${border("painPoint")} resize-y`}
-              />
-            )}
-          </Field>
-        </div>
+        </LineField>
       </fieldset>
 
       {/* Honeypot. Off-screen, never announced, never tab-reachable: a human
@@ -210,24 +159,17 @@ export default function DetailsForm({
         />
       </div>
 
-      <div className="mt-7 flex flex-wrap items-center gap-3">
-        <button
-          type="submit"
-          disabled={submitting}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-[15px] font-medium text-primary-foreground transition-[background-color,box-shadow,transform] duration-160 ease-out hover:bg-primary/90 hover:shadow-[0_6px_24px_-4px_hsl(222_84%_53%/0.45)] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:shadow-none disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        >
-          {submitting && (
-            <LoaderCircle size={16} className="boot-spin" aria-hidden />
-          )}
-          {submitting ? "Booking…" : "Confirm booking"}
-        </button>
+      <div className="mt-8 flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={onBack}
           disabled={submitting}
-          className="rounded-xl px-2 py-3 text-[15px] text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="inline-flex items-center gap-1.5 rounded-lg py-3 text-[15px] font-medium text-primary transition-colors hover:text-foreground disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
-          Back to times
+          <ArrowLeft size={15} aria-hidden /> Back
+        </button>
+        <button type="submit" className="sr-only">
+          Continue
         </button>
       </div>
     </form>

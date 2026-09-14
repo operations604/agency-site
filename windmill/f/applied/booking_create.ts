@@ -18,7 +18,8 @@ const CONFIG = {
   windowDays: 30,
   minFormMs: 1500,
   maxBooksPerEmailPerHour: 5,
-  eventTitle: "Applied Systems — intro call",
+  eventTitle: "Applied Systems intro call",
+  organizerName: "Applied Systems",
   supabaseResource: "f/applied/supabase",
   googleResource: "f/applied/google_calendar",
   calendarId: "primary",
@@ -40,7 +41,6 @@ type Postgresql = {
 type Lead = {
   name?: string;
   email?: string;
-  company?: string;
   painPoint?: string;
 };
 
@@ -101,10 +101,6 @@ function validate(req: BookingRequest): Record<string, string> {
   if (!lead.name?.trim()) errors.name = "Tell us who we are meeting.";
   if (!lead.email?.trim()) errors.email = "We need an email to send the invite.";
   else if (!EMAIL_RE.test(lead.email.trim())) errors.email = "That email looks off.";
-  if (!lead.company?.trim()) errors.company = "Which company is this for?";
-  if (!lead.painPoint?.trim()) {
-    errors.painPoint = "A sentence is plenty — what is eating your time?";
-  }
   if (!req.startsAt || !Number.isFinite(Date.parse(req.startsAt))) {
     errors.startsAt = "Pick a time.";
   }
@@ -172,6 +168,88 @@ async function googleToken(): Promise<string | null> {
   }
 }
 
+async function nameAsAppliedSystems(access: string) {
+  const headers = {
+    authorization: `Bearer ${access}`,
+    "content-type": "application/json",
+  };
+  const calendar = encodeURIComponent(CONFIG.calendarId);
+  const calGet = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/${calendar}`,
+    { headers },
+  );
+  if (calGet.ok) {
+    const json = (await calGet.json()) as { summary?: string };
+    if (json.summary !== CONFIG.organizerName) {
+      const patch = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/${calendar}`,
+        {
+          method: "PATCH",
+          headers,
+          body: JSON.stringify({ summary: CONFIG.organizerName }),
+        },
+      );
+      if (!patch.ok) {
+        console.error("Calendar rename failed", patch.status, await patch.text());
+      }
+    }
+  }
+
+  const sendAs = await fetch(
+    "https://gmail.googleapis.com/gmail/v1/users/me/settings/sendAs",
+    { headers },
+  );
+  if (sendAs.ok) {
+    const json = (await sendAs.json()) as {
+      sendAs?: { sendAsEmail?: string; displayName?: string; isPrimary?: boolean }[];
+    };
+    const primary =
+      json.sendAs?.find((s) => s.isPrimary) ?? json.sendAs?.[0];
+    if (primary?.sendAsEmail && primary.displayName !== CONFIG.organizerName) {
+      const patch = await fetch(
+        `https://gmail.googleapis.com/gmail/v1/users/me/settings/sendAs/${encodeURIComponent(primary.sendAsEmail)}`,
+        {
+          method: "PATCH",
+          headers,
+          body: JSON.stringify({ displayName: CONFIG.organizerName }),
+        },
+      );
+      if (!patch.ok) {
+        console.error("Gmail sendAs name failed", patch.status, await patch.text());
+      }
+    }
+  }
+
+  const me = await fetch(
+    "https://people.googleapis.com/v1/people/me?personFields=names",
+    { headers },
+  );
+  if (me.ok) {
+    const person = (await me.json()) as {
+      etag?: string;
+      names?: { displayName?: string }[];
+    };
+    if (person.names?.[0]?.displayName !== CONFIG.organizerName) {
+      const patch = await fetch(
+        "https://people.googleapis.com/v1/people/me?updatePersonFields=names",
+        {
+          method: "PATCH",
+          headers,
+          body: JSON.stringify({
+            etag: person.etag,
+            names: [
+              { givenName: "Applied", familyName: "Systems", displayName: CONFIG.organizerName },
+            ],
+          }),
+        },
+      );
+      if (!patch.ok) {
+        console.error("Google profile name failed", patch.status, await patch.text());
+      }
+    }
+  }
+}
+
 function meetFromEvent(event: {
   hangoutLink?: string;
   conferenceData?: { entryPoints?: { entryPointType: string; uri: string }[] };
@@ -186,7 +264,7 @@ function meetFromEvent(event: {
 async function createMeet(args: {
   startsAt: string;
   endsAt: string;
-  lead: { name: string; email: string; company: string; painPoint: string };
+  lead: { name: string; email: string; painPoint: string };
   bookingId: string;
 }): Promise<{ eventId: string; meetUrl: string | null } | null> {
   const access = await googleToken();
@@ -194,6 +272,8 @@ async function createMeet(args: {
     console.error("Google Calendar resource f/applied/google_calendar has no token");
     return null;
   }
+
+  await nameAsAppliedSystems(access);
 
   const calendar = encodeURIComponent(CONFIG.calendarId);
   const res = await fetch(
@@ -207,13 +287,13 @@ async function createMeet(args: {
       },
       body: JSON.stringify({
         summary: CONFIG.eventTitle,
-        description: [
-          args.lead.name,
-          args.lead.email,
-          args.lead.company,
-          "",
-          args.lead.painPoint,
-        ].join("\n"),
+        description: [args.lead.name, args.lead.email, args.lead.painPoint]
+          .filter(Boolean)
+          .join("\n"),
+        source: {
+          title: CONFIG.organizerName,
+          url: "https://appliedsystems.com",
+        },
         start: { dateTime: args.startsAt, timeZone: "UTC" },
         end: { dateTime: args.endsAt, timeZone: "UTC" },
         attendees: [
@@ -293,22 +373,22 @@ export async function main(
   const leadRow = {
     name: req.lead!.name!.trim(),
     email: req.lead!.email!.trim().toLowerCase(),
-    company: req.lead!.company!.trim(),
-    painPoint: req.lead!.painPoint!.trim(),
+    painPoint: (req.lead!.painPoint ?? "").trim(),
   };
   const manageToken = token(32);
   const { date, time } = nyDateTime(startMs);
-  const notes = `${leadRow.painPoint}\n\nCompany: ${leadRow.company}`;
+  const notes = leadRow.painPoint || null;
 
   try {
     let inserted: { id: string }[];
     try {
       inserted = await sql<{ id: string }[]>`
         insert into "Applied_Bookings".bookings (
-          name, email, date, time, notes
+          name, email, date, time, notes, manage_token, status
         ) values (
           ${leadRow.name}, ${leadRow.email},
-          ${date}::date, ${time}::time, ${notes}
+          ${date}::date, ${time}::time, ${notes},
+          ${manageToken}, 'confirmed'
         )
         returning id
       `;
@@ -325,6 +405,7 @@ export async function main(
     const endsAtIso = new Date(endMs).toISOString();
 
     let meetUrl: string | null = null;
+    let googleEventId: string | null = null;
     try {
       const created = await createMeet({
         startsAt: startsAtIso,
@@ -333,13 +414,18 @@ export async function main(
         bookingId,
       });
       meetUrl = created?.meetUrl ?? null;
+      googleEventId = created?.eventId ?? null;
     } catch (err) {
       console.error("Google Calendar error", err);
     }
 
     await sql`
       update "Applied_Bookings".bookings
-      set meet_url = ${meetUrl}
+      set
+        meet_url = ${meetUrl},
+        manage_token = ${manageToken},
+        google_event_id = ${googleEventId},
+        status = 'confirmed'
       where id = ${bookingId}::uuid
     `;
 

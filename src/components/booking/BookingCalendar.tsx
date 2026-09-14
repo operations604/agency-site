@@ -22,9 +22,15 @@ import {
 import Confirmation from "./Confirmation";
 import DetailsForm, { type FormBanner } from "./DetailsForm";
 import MonthGrid from "./MonthGrid";
+import ProblemPicker from "./ProblemPicker";
 import TimeList from "./TimeList";
 import TimezoneSelect from "./TimezoneSelect";
-import { EMPTY_LEAD, STEP_LABELS, type BookingStep, type LeadForm } from "./types";
+import {
+  EMPTY_LEAD,
+  STEP_LABELS,
+  type BookingStep,
+  type LeadForm,
+} from "./types";
 import { useAvailability } from "./useAvailability";
 
 const KEY_ZONE = "UTC";
@@ -32,25 +38,24 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const CONTACT_EMAIL = "hello@appliedsystems.com";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-const STEPS: BookingStep[] = [1, 2, 3];
+const STEPS: BookingStep[] = [1, 2, 3, 4];
 
-function validate(lead: LeadForm): Record<string, string> {
+function validateContact(lead: LeadForm): Record<string, string> {
   const errors: Record<string, string> = {};
   if (!lead.name.trim()) errors.name = "Tell us who we are meeting.";
   if (!lead.email.trim()) errors.email = "We need an email to send the invite.";
   else if (!EMAIL_RE.test(lead.email.trim())) errors.email = "That email looks off.";
-  if (!lead.company.trim()) errors.company = "Which company is this for?";
-  if (!lead.painPoint.trim()) {
-    errors.painPoint = "A sentence is plenty — what is eating your time?";
-  }
   return errors;
+}
+
+function contactReady(lead: LeadForm): boolean {
+  return lead.name.trim().length > 0 && EMAIL_RE.test(lead.email.trim());
 }
 
 function toLeadPayload(lead: LeadForm) {
   return {
     name: lead.name.trim(),
     email: lead.email.trim(),
-    company: lead.company.trim(),
     painPoint: lead.painPoint.trim(),
   };
 }
@@ -75,9 +80,13 @@ export default function BookingCalendar() {
   const [banner, setBanner] = useState<FormBanner | null>(null);
   const [confirmed, setConfirmed] =
     useState<Extract<BookingResult, { ok: true }> | null>(null);
+  const [cancelled, setCancelled] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
   const firstStepRender = useRef(true);
+  const skipAutoAdvance = useRef(false);
 
   const availability = useAvailability(timezone);
   const { byDay, openDayKeys, status, reload, dropSlot } = availability;
@@ -112,6 +121,23 @@ export default function BookingCalendar() {
 
   const daySlots = selectedDayKey ? (byDay.get(selectedDayKey) ?? []) : [];
 
+  const readyToAdvance = contactReady(lead);
+
+  useEffect(() => {
+    if (step !== 2) return;
+    if (!readyToAdvance) {
+      skipAutoAdvance.current = false;
+      return;
+    }
+    if (skipAutoAdvance.current) return;
+    const id = window.setTimeout(() => {
+      skipAutoAdvance.current = true;
+      setFieldErrors({});
+      setStep(3);
+    }, 420);
+    return () => window.clearTimeout(id);
+  }, [step, readyToAdvance]);
+
   const nextOpenKey = useMemo(() => {
     if (!selectedDayKey) return openDayKeys[0] ?? null;
     return (
@@ -128,6 +154,28 @@ export default function BookingCalendar() {
   const pickSlot = (slot: Slot) => {
     setSelectedSlot(slot);
     setBanner(null);
+    skipAutoAdvance.current = false;
+    setStep(2);
+  };
+
+  const goToProblem = () => {
+    const errors = validateContact(lead);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    skipAutoAdvance.current = true;
+    setFieldErrors({});
+    setStep(3);
+  };
+
+  const goBackToTimes = () => {
+    skipAutoAdvance.current = true;
+    setStep(1);
+  };
+
+  const goBackToWho = () => {
+    skipAutoAdvance.current = true;
     setStep(2);
   };
 
@@ -142,10 +190,11 @@ export default function BookingCalendar() {
       return;
     }
 
-    const errors = validate(lead);
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
+    const contactErrors = validateContact(lead);
+    if (Object.keys(contactErrors).length > 0) {
+      setFieldErrors(contactErrors);
       setBanner(null);
+      setStep(2);
       return;
     }
 
@@ -164,7 +213,9 @@ export default function BookingCalendar() {
 
       if (result.ok) {
         setConfirmed(result);
-        setStep(3);
+        setCancelled(false);
+        setCancelError(null);
+        setStep(4);
         return;
       }
 
@@ -176,7 +227,7 @@ export default function BookingCalendar() {
         setSelectedSlot(null);
         setBanner({
           title: "That time just went.",
-          body: `${result.message} Your answers are saved — pick another time and we will send it straight through.`,
+          body: `${result.message} Your answers are saved. Pick another time and we will send it straight through.`,
           onRetry: () => setStep(1),
           retryLabel: "Pick another time",
         });
@@ -201,12 +252,43 @@ export default function BookingCalendar() {
       // Only transport failures throw. Keep every field and offer a retry.
       setBanner({
         title: "We could not reach the server.",
-        body: "Check your connection and try again — your answers are still here.",
+        body: "Check your connection and try again. Your answers are still here.",
         onRetry: () => void submit(),
       });
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const cancelBooking = async () => {
+    if (!confirmed) return;
+    setCancelling(true);
+    setCancelError(null);
+    try {
+      const result = await bookingApi.cancel({
+        bookingId: confirmed.bookingId,
+        manageToken: confirmed.manageToken,
+      });
+      if (!result.ok) {
+        setCancelError(result.message);
+        return;
+      }
+      setCancelled(true);
+      reload();
+    } catch {
+      setCancelError("We could not cancel that. Try again.");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const bookAgain = () => {
+    setConfirmed(null);
+    setCancelled(false);
+    setCancelError(null);
+    setSelectedSlot(null);
+    skipAutoAdvance.current = false;
+    setStep(1);
   };
 
   // Enter-only, deliberately. AnimatePresence mode="wait" deadlocks here: the
@@ -235,7 +317,7 @@ export default function BookingCalendar() {
     >
       {/* Step changes are announced without moving anyone's reading position. */}
       <p aria-live="polite" className="sr-only">
-        {`Step ${step} of 3, ${STEP_LABELS[step]}`}
+        {`Step ${step} of 4, ${STEP_LABELS[step]}`}
       </p>
 
       <ol className="font-mono-label flex items-center justify-center gap-x-2 text-[10px] sm:gap-x-3 sm:text-[11px]">
@@ -263,7 +345,7 @@ export default function BookingCalendar() {
       </ol>
 
         {step === 1 && (
-          <motion.div key="step-1" {...stepTransition} className="mt-8">
+          <motion.div key="step-1" {...stepTransition} className="mt-5">
             <h3 ref={stepHeadingRef} tabIndex={-1} className="sr-only">
               Pick a time
             </h3>
@@ -304,7 +386,7 @@ export default function BookingCalendar() {
                 </a>
               </div>
             ) : (
-              <div className="grid gap-8 min-[900px]:grid-cols-[1fr_288px] min-[900px]:gap-0">
+              <div className="grid gap-8 booking-panes min-[900px]:grid-cols-[1fr_320px] min-[900px]:gap-0">
                 <div className="min-[900px]:pr-8">
                   <MonthGrid
                     locale={locale}
@@ -358,12 +440,15 @@ export default function BookingCalendar() {
 
         {step === 2 && (
           <motion.div key="step-2" {...stepTransition} className="mt-8">
-            <h3 ref={stepHeadingRef} tabIndex={-1} className="sr-only">
-              Your details
+            <h3
+              ref={stepHeadingRef}
+              tabIndex={-1}
+              className="text-center text-[1.35rem] focus:outline-none"
+            >
+              Who are we talking to?
             </h3>
 
-            <div className="mx-auto max-w-[620px]">
-              {/* Pinned so nobody loses their place while filling this in. */}
+            <div className="mx-auto mt-6 max-w-[520px]">
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
                 <div className="flex items-center gap-2.5">
                   <Clock size={16} className="shrink-0 text-primary" aria-hidden />
@@ -398,7 +483,7 @@ export default function BookingCalendar() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setStep(1)}
+                  onClick={goBackToTimes}
                   disabled={submitting}
                   className="inline-flex items-center gap-1.5 rounded-lg text-[14px] font-medium text-primary transition-colors hover:text-foreground disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
@@ -406,12 +491,12 @@ export default function BookingCalendar() {
                 </button>
               </div>
 
-              <div className="mt-6">
+              <div className="mt-8">
                 <DetailsForm
                   value={lead}
                   onChange={patchLead}
-                  onSubmit={() => void submit()}
-                  onBack={() => setStep(1)}
+                  onContinue={goToProblem}
+                  onBack={goBackToTimes}
                   submitting={submitting}
                   fieldErrors={fieldErrors}
                   banner={banner}
@@ -423,10 +508,90 @@ export default function BookingCalendar() {
           </motion.div>
         )}
 
-        {step === 3 && confirmed && (
-          <motion.div key="step-3" {...stepTransition} className="mt-10">
+        {step === 3 && (
+          <motion.div key="step-3" {...stepTransition} className="mt-8">
+            <h3
+              ref={stepHeadingRef}
+              tabIndex={-1}
+              className="flex flex-wrap items-center justify-center gap-2.5 text-[1.35rem] focus:outline-none"
+            >
+              Describe the problem
+              <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium tracking-normal text-muted-foreground">
+                optional
+              </span>
+            </h3>
+
+            <div className="mx-auto mt-6 max-w-[520px]">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
+                <div className="flex items-center gap-2.5">
+                  <Clock size={16} className="shrink-0 text-primary" aria-hidden />
+                  <p className="text-[15px] text-foreground">
+                    {selectedDayKey && (
+                      <span className="font-medium">
+                        {formatDayLong(
+                          dayKeyNoonUtc(selectedDayKey),
+                          KEY_ZONE,
+                          locale,
+                        )}
+                      </span>
+                    )}
+                    {selectedSlot ? (
+                      <>
+                        {" · "}
+                        {pinnedWhen}{" "}
+                        <span className="text-muted-foreground">
+                          {zoneAbbrev(
+                            Date.parse(selectedSlot.startsAt),
+                            timezone,
+                            locale,
+                          )}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground">
+                        {" · no time selected"}
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={goBackToTimes}
+                  disabled={submitting}
+                  className="inline-flex items-center gap-1.5 rounded-lg text-[14px] font-medium text-primary transition-colors hover:text-foreground disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  <ArrowLeft size={14} aria-hidden /> Change
+                </button>
+              </div>
+
+              <div className="mt-8">
+                <ProblemPicker
+                  value={lead.painPoint}
+                  onChange={(value) => {
+                    patchLead({ painPoint: value });
+                    if (fieldErrors.painPoint) {
+                      setFieldErrors((prev) => {
+                        const next = { ...prev };
+                        delete next.painPoint;
+                        return next;
+                      });
+                    }
+                  }}
+                  onSubmit={() => void submit()}
+                  onBack={goBackToWho}
+                  submitting={submitting}
+                  error={fieldErrors.painPoint}
+                  banner={banner}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {step === 4 && confirmed && (
+          <motion.div key="step-4" {...stepTransition} className="mt-10">
             <h3 ref={stepHeadingRef} tabIndex={-1} className="sr-only">
-              Confirmed
+              {cancelled ? "Cancelled" : "Confirmed"}
             </h3>
             <Confirmation
               booking={confirmed}
@@ -434,6 +599,11 @@ export default function BookingCalendar() {
               locale={locale}
               email={lead.email.trim()}
               isMock={bookingApiIsMock}
+              cancelled={cancelled}
+              cancelling={cancelling}
+              cancelError={cancelError}
+              onCancel={() => void cancelBooking()}
+              onBookAgain={bookAgain}
             />
           </motion.div>
         )}

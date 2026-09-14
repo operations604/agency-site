@@ -235,7 +235,7 @@ export default function MonthGrid({
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <h4 id={labelId} className="text-[17px] font-semibold">
+        <h4 id={labelId} className="text-[18px] font-semibold">
           {monthLabel}
         </h4>
         <div className="flex items-center gap-1">
@@ -329,7 +329,7 @@ export default function MonthGrid({
                   >
                     <span
                       className={[
-                        "mx-auto grid h-10 w-10 place-items-center rounded-full font-mono text-[13px] tabular-nums transition-colors duration-200",
+                        "mx-auto grid h-11 w-11 place-items-center rounded-full font-mono text-[14px] tabular-nums transition-colors duration-200 booking-day",
                         "group-focus:ring-2 group-focus:ring-ring group-focus:ring-offset-2 group-focus:ring-offset-background",
                         isSelected
                           ? "bg-primary font-semibold text-primary-foreground"
@@ -338,7 +338,7 @@ export default function MonthGrid({
                               ? "text-muted-foreground/45"
                               : "text-muted-foreground/25"
                             : open
-                              ? "border border-border bg-card font-medium text-foreground group-hover:border-primary/45 group-hover:text-primary"
+                              ? "border border-border/80 bg-transparent font-medium text-foreground group-hover:border-primary/45 group-hover:text-primary"
                               : "text-muted-foreground/70",
                         refreshing && !isSelected ? "opacity-60" : "",
                       ].join(" ")}
