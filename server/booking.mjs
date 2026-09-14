@@ -10,7 +10,7 @@ export const CONFIG = {
   weekendStartMinute: 9 * 60,
   workEndMinute: 21 * 60,
   slotMinutes: 30,
-  bufferMinutes: 15,
+  bufferMinutes: 0,
   minNoticeHours: 12,
   windowDays: 30,
   minFormMs: 1500,

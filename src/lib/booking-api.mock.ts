@@ -30,7 +30,7 @@ const WEEKDAY_START_MINUTE = 16 * 60;
 const WEEKEND_START_MINUTE = 9 * 60;
 const WORK_END_MINUTE = 21 * 60;
 const SLOT_MINUTES = 30;
-const BUFFER_MINUTES = 15;
+const BUFFER_MINUTES = 0;
 const MIN_NOTICE_HOURS = 12;
 
 const MINUTE = 60_000;
@@ -130,7 +130,7 @@ function latency(): Promise<void> {
 
 /**
  * Walk business-local calendar days across the requested range and lay slots
- * at a slot+buffer cadence. Weekdays start at 16:00; weekends at 09:00.
+ * every 30 minutes. Weekdays start at 16:00; weekends at 09:00.
  * The last slot of any day ends at 21:00.
  */
 function generateSlots(fromMs: number, toMs: number): Slot[] {
