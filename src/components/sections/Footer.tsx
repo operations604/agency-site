@@ -19,10 +19,10 @@ export default function Footer() {
             that eats your team's time.
           </p>
           <a
-            href="mailto:hello@appliedsystems.com"
+            href="mailto:operations@appliedsystem.org"
             className="mt-3 inline-block text-[15px] font-medium text-foreground transition-colors hover:text-primary"
           >
-            hello@appliedsystems.com
+            operations@appliedsystem.org
           </a>
         </div>
         <div className="flex flex-col gap-3">

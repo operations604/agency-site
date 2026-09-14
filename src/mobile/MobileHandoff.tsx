@@ -438,7 +438,7 @@ function Beat({
       >
         {mark && (
           <motion.img
-            src="/favicon.svg?v=4"
+            src="/favicon.svg?v=6"
             alt=""
             className="mb-5 h-12 w-12"
             style={{ opacity: markOp, scale: markSc, ...GPU }}
@@ -469,9 +469,15 @@ function Beat({
         </h2>
         {copy && (
           <motion.p
-            className="mt-3 max-w-[32rem] text-[15px] leading-[1.55] text-muted-foreground"
+            className="relative mt-3 max-w-[32rem] text-[15px] leading-[1.55] text-muted-foreground"
             style={{ opacity: copyOp, y: copyY, ...GPU }}
           >
+            {mark && (
+              <span
+                aria-hidden
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[180%] w-[122%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[hsl(220_40%_98%/0.62)] backdrop-blur-[8px]"
+              />
+            )}
             {copy}
           </motion.p>
         )}

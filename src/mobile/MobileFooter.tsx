@@ -18,10 +18,10 @@ export default function MobileFooter() {
           that eats your team's time.
         </p>
         <a
-          href="mailto:hello@appliedsystems.com"
+          href="mailto:operations@appliedsystem.org"
           className="mt-3 text-[15px] font-medium text-foreground"
         >
-          hello@appliedsystems.com
+          operations@appliedsystem.org
         </a>
 
         <span className="mt-8 font-mono-label text-[11px] text-[hsl(222_10%_55%)]">
