@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import BookCallButton from "../ui/BookCallButton";
-import MacBoot from "./MacBoot";
+import HeroDemo from "./HeroDemo";
 
 const HEADLINE = "Custom software and automation, built around your business.";
 
@@ -131,8 +131,8 @@ export default function Hero() {
       id="top"
       className={`relative pt-28 pb-16 sm:pt-32 lg:pb-24${armed ? " hero-ready" : ""}`}
     >
-      <div className="relative mx-auto w-full max-w-[1600px] px-5 sm:px-8">
-        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[minmax(22rem,32rem)_minmax(0,1fr)] lg:gap-10">
+      <div className="relative mx-auto min-w-0 w-full max-w-[1600px] px-5 sm:px-8">
+        <div className="grid min-w-0 grid-cols-1 items-center gap-12 xl:grid-cols-[minmax(22rem,32rem)_minmax(0,1fr)] xl:gap-10">
         <motion.div style={{ y: yCopy, willChange: "transform" }}>
           <Headline armed={armed} />
           <Subhead armed={armed} />
@@ -156,9 +156,9 @@ export default function Hero() {
         >
           <div
             aria-hidden
-            className="absolute -inset-16 -z-10 rounded-[3rem] bg-[radial-gradient(closest-side,hsl(222_84%_53%/0.16),hsl(222_84%_53%/0.05)_60%,transparent)]"
+            className="absolute inset-x-0 -top-16 -bottom-16 -z-10 rounded-[3rem] bg-[radial-gradient(closest-side,hsl(222_84%_53%/0.16),hsl(222_84%_53%/0.05)_60%,transparent)]"
           />
-          <MacBoot ready={armed} />
+          <HeroDemo ready={armed} reduced={reduced} />
         </motion.div>
         </motion.div>
         </div>

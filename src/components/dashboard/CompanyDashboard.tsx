@@ -19,6 +19,7 @@ import {
   Users,
 } from "lucide-react";
 import { EASE } from "../../lib/animations";
+import { stageToPage, type DemoStage } from "../../lib/demo-stage";
 
 const BLUE = "hsl(222 84% 53%)";
 const BLUE_SOFT = "hsl(222 55% 72%)";
@@ -139,8 +140,8 @@ type BoardJob = {
   zone: string;
   status: JobStatus;
 };
-type Page = "Overview" | "Inbox" | "Pipeline" | "Dispatch" | "Crew" | "Customers" | "Invoices";
 type InboxPhase = "in" | "typing" | "reply" | "done";
+type Page = "Overview" | "Inbox" | "Pipeline" | "Dispatch" | "Crew" | "Customers" | "Invoices";
 
 const BOARD: BoardJob[] = [
   {
@@ -270,20 +271,33 @@ function pop(delay: number, reduced: boolean) {
   };
 }
 
-export default function CompanyDashboard({ reduced }: { reduced: boolean }) {
+export default function CompanyDashboard({
+  reduced,
+  stage,
+  paused = false,
+  statusReady = true,
+  pipeStep = 0,
+}: {
+  reduced: boolean;
+  stage: DemoStage;
+  paused?: boolean;
+  statusReady?: boolean;
+  pipeStep?: number;
+}) {
   const gid = useId().replace(/:/g, "");
-  const [jobs, setJobs] = useState<BoardJob[]>(BOARD);
+  const page = stageToPage(stage) as Page;
+  const [jobs, setJobs] = useState<BoardJob[]>(
+    stage === "dispatch" || stage === "complete" ? [INCOMING, ...BOARD].slice(0, 4) : BOARD,
+  );
   const [weekData, setWeekData] = useState(JOBS_WEEK);
   const [hoursData, setHoursData] = useState(HOURS_WEEK);
   const [crewOut, setCrewOut] = useState(8);
   const [crewLoad, setCrewLoad] = useState(CREW_LOAD);
   const [hoursSaved, setHoursSaved] = useState(312);
   const [pipe, setPipe] = useState(PIPELINE.map((p) => p.value));
-  const [page, setPage] = useState<Page>("Overview");
-  const [inboxPhase, setInboxPhase] = useState<InboxPhase>("in");
-  const [pipeStep, setPipeStep] = useState(0);
-  const [inboxBadge, setInboxBadge] = useState(7);
-  const [invoicePaid, setInvoicePaid] = useState(reduced);
+  const [inboxPhase] = useState<InboxPhase>("in");
+  const [inboxBadge] = useState(7);
+  const [invoicePaid] = useState(reduced || stage === "complete");
   const week = useMemo(() => curve(weekData, 360, 118, 32), [weekData]);
   const last = useMemo(() => curve(JOBS_LAST, 360, 118, 32), []);
   const hours = useMemo(() => curve(hoursData, 360, 118, 48), [hoursData]);
@@ -294,18 +308,15 @@ export default function CompanyDashboard({ reduced }: { reduced: boolean }) {
   const ringFill = (crewOut / 9) * ring;
 
   useEffect(() => {
-    if (reduced) {
+    if (stage === "dispatch" || stage === "complete" || reduced) {
       setJobs([INCOMING, ...BOARD].slice(0, 4));
-      return;
+    } else {
+      setJobs(BOARD);
     }
-    const addJob = window.setTimeout(() => {
-      setJobs((prev) => [INCOMING, ...prev].slice(0, 4));
-    }, 6400);
-    return () => window.clearTimeout(addJob);
-  }, [reduced]);
+  }, [stage, reduced]);
 
   useEffect(() => {
-    if (reduced) return;
+    if (reduced || paused || stage === "complete") return;
     const beat = window.setInterval(() => {
       setWeekData((prev) =>
         prev.map((v, i) => {
@@ -346,69 +357,7 @@ export default function CompanyDashboard({ reduced }: { reduced: boolean }) {
       );
     }, 5600);
     return () => window.clearInterval(beat);
-  }, [reduced]);
-
-  useEffect(() => {
-    if (reduced) return;
-    const timers: number[] = [];
-    const sleep = (ms: number) =>
-      new Promise<void>((resolve) => {
-        timers.push(window.setTimeout(resolve, ms));
-      });
-    let stop = false;
-    (async () => {
-      await sleep(6200);
-      while (!stop) {
-        setPage("Inbox");
-        setInboxPhase("in");
-        setInboxBadge(7);
-        await sleep(900);
-        if (stop) return;
-        setInboxPhase("typing");
-        await sleep(1100);
-        if (stop) return;
-        setInboxPhase("reply");
-        await sleep(2600);
-        if (stop) return;
-        setInboxPhase("done");
-        setInboxBadge(6);
-        await sleep(1800);
-        if (stop) return;
-        setPage("Pipeline");
-        setPipeStep(0);
-        await sleep(1000);
-        if (stop) return;
-        setPipeStep(1);
-        await sleep(1500);
-        if (stop) return;
-        setPipeStep(2);
-        await sleep(2200);
-        if (stop) return;
-        setPage("Dispatch");
-        await sleep(4000);
-        if (stop) return;
-        setPage("Crew");
-        await sleep(3200);
-        if (stop) return;
-        setPage("Customers");
-        await sleep(3200);
-        if (stop) return;
-        setPage("Invoices");
-        setInvoicePaid(false);
-        await sleep(1400);
-        if (stop) return;
-        setInvoicePaid(true);
-        await sleep(2600);
-        if (stop) return;
-        setPage("Overview");
-        await sleep(6500);
-      }
-    })();
-    return () => {
-      stop = true;
-      timers.forEach(clearTimeout);
-    };
-  }, [reduced]);
+  }, [reduced, paused, stage]);
 
   const search =
     page === "Inbox"
@@ -430,7 +379,7 @@ export default function CompanyDashboard({ reduced }: { reduced: boolean }) {
       className="pointer-events-none flex h-full min-h-0 w-full overflow-hidden bg-[hsl(220_40%_97%)] text-[hsl(224_30%_12%)]"
       aria-hidden
     >
-      <aside className="flex w-[31%] max-w-[188px] min-w-[148px] shrink-0 flex-col border-r border-border bg-white">
+      <aside className="flex w-[31%] max-w-[188px] min-w-0 shrink-0 flex-col border-r border-border bg-white">
         <motion.div {...pop(0.04, reduced)} className="flex items-center gap-2 px-2.5 pt-2 pb-1.5">
           <BrandMark size={18} />
           <div className="min-w-0 leading-tight">
@@ -787,7 +736,11 @@ export default function CompanyDashboard({ reduced }: { reduced: boolean }) {
                         }}
                         className="overflow-hidden"
                       >
-                        <BoardRow row={row} />
+                        <BoardRow
+                          row={row}
+                          highlighted={stage === "overview" && i === 0}
+                          revealStatus={stage !== "overview" || statusReady}
+                        />
                       </motion.div>
                     ))}
                   </AnimatePresence>
@@ -865,8 +818,16 @@ export default function CompanyDashboard({ reduced }: { reduced: boolean }) {
                 className="absolute inset-0 p-2"
               >
                 {page === "Inbox" && <InboxView phase={inboxPhase} />}
-                {page === "Pipeline" && <PipelineView step={pipeStep} />}
-                {page === "Dispatch" && <DispatchView jobs={jobs} />}
+                {page === "Pipeline" && (
+                  <PipelineView step={pipeStep} highlight={stage === "pipeline"} revealStatus={statusReady} />
+                )}
+                {page === "Dispatch" && (
+                  <DispatchView
+                    jobs={jobs}
+                    focusIndex={0}
+                    revealStatus={statusReady}
+                  />
+                )}
                 {page === "Crew" && <CrewView load={crewLoad} out={crewOut} />}
                 {page === "Customers" && <CustomersView />}
                 {page === "Invoices" && <InvoicesView paid={invoicePaid} />}
@@ -1042,18 +1003,28 @@ const PIPE_STATIC = [
   [{ name: "North Austin HOA", detail: "#4418 · $2,840" }],
 ];
 
-function PipelineView({ step }: { step: number }) {
+function PipelineView({
+  step,
+  highlight,
+  revealStatus,
+}: {
+  step: number;
+  highlight: boolean;
+  revealStatus: boolean;
+}) {
   const labels = ["New", "Quoted", "Booked", "Invoiced"];
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="mb-1.5">
         <h2 className="text-[15px] font-semibold tracking-tight">Pipeline</h2>
         <p className="text-[10px] text-muted-foreground">
-          {step === 0
-            ? "Scoring Sarah Kim from Google LSA"
-            : step === 1
-              ? "Quote drafted · waiting to send"
-              : "Booked onto Thursday dispatch"}
+          {revealStatus
+            ? step === 0
+              ? "Scoring Sarah Kim from Google LSA"
+              : step === 1
+                ? "Quote drafted · waiting to send"
+                : "Booked onto Thursday dispatch"
+            : "New lead in from Google LSA"}
         </p>
       </div>
       <div className="flex min-h-0 flex-1 gap-1.5">
@@ -1070,7 +1041,9 @@ function PipelineView({ step }: { step: number }) {
                 <motion.div
                   layoutId="sarah-lead"
                   transition={{ duration: 0.7, ease: EASE }}
-                  className="rounded-md border border-primary/25 bg-white p-1.5"
+                  className={`rounded-md border bg-white p-1.5 ${
+                    highlight ? "border-primary/30 bg-primary/[0.06]" : "border-primary/25"
+                  }`}
                 >
                   <div className="truncate text-[10px] font-medium">Sarah Kim</div>
                   <div className="truncate text-[8px] text-muted-foreground">AC not cooling · 92</div>
@@ -1090,19 +1063,24 @@ function PipelineView({ step }: { step: number }) {
   );
 }
 
-function DispatchView({ jobs }: { jobs: BoardJob[] }) {
-  const [focus, setFocus] = useState(0);
-  useEffect(() => {
-    const t = window.setInterval(() => setFocus((f) => (f + 1) % Math.max(jobs.length, 1)), 1600);
-    return () => window.clearInterval(t);
-  }, [jobs.length]);
-  const current = jobs[focus] ?? jobs[0];
+function DispatchView({
+  jobs,
+  focusIndex = 0,
+  revealStatus = true,
+}: {
+  jobs: BoardJob[];
+  focusIndex?: number;
+  revealStatus?: boolean;
+}) {
+  const current = jobs[focusIndex] ?? jobs[0];
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="mb-1.5">
         <h2 className="text-[15px] font-semibold tracking-tight">Dispatch</h2>
         <p className="text-[10px] text-muted-foreground">
-          {current ? `${current.tech} · ${current.job} · ${current.zone}` : "Today's routes"}
+          {revealStatus && current
+            ? `${current.tech} · ${current.job} · ${current.zone}`
+            : "Matching the job to a tech"}
         </p>
       </div>
       <div className="min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-white">
@@ -1117,7 +1095,7 @@ function DispatchView({ jobs }: { jobs: BoardJob[] }) {
           <div
             key={row.job}
             className={`grid grid-cols-[40px_minmax(0,1.1fr)_72px_56px_auto] items-center border-b border-border px-2 py-1.5 ${
-              i === focus ? "border-l-2 border-l-primary bg-[hsl(220_36%_98%)]" : "border-l-2 border-l-transparent"
+              i === focusIndex ? "bg-primary/[0.07]" : ""
             }`}
           >
             <span className="font-mono text-[9px] text-muted-foreground">{row.time}</span>
@@ -1130,7 +1108,10 @@ function DispatchView({ jobs }: { jobs: BoardJob[] }) {
               {row.tech.split(" ")[0]}
             </span>
             <span className="text-[9px] text-muted-foreground">{row.zone}</span>
-            <span className={`justify-self-end rounded-full px-1.5 py-px text-[7px] font-semibold ${STATUS[row.status].cls}`}>
+            <span
+              className={`justify-self-end rounded-full px-1.5 py-px text-[7px] font-semibold ${STATUS[row.status].cls}`}
+              style={{ opacity: i === focusIndex && !revealStatus ? 0 : 1 }}
+            >
               {STATUS[row.status].label}
             </span>
           </div>
@@ -1313,10 +1294,22 @@ function CustomersView() {
   );
 }
 
-function BoardRow({ row }: { row: BoardJob }) {
+function BoardRow({
+  row,
+  highlighted = false,
+  revealStatus = true,
+}: {
+  row: BoardJob;
+  highlighted?: boolean;
+  revealStatus?: boolean;
+}) {
   const st = STATUS[row.status];
   return (
-    <div className="grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-1 px-1 py-[5px]">
+    <div
+      className={`grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-1 rounded-md px-1 py-[5px] ${
+        highlighted ? "bg-primary/[0.07]" : ""
+      }`}
+    >
       <span className="font-mono text-[9px] text-muted-foreground">{row.time}</span>
       <div className="min-w-0">
         <div className="truncate text-[10px] font-medium">{row.job}</div>
@@ -1326,6 +1319,7 @@ function BoardRow({ row }: { row: BoardJob }) {
       </div>
       <span
         className={`justify-self-end rounded-full px-1.5 py-px text-[7px] font-semibold tracking-wide whitespace-nowrap ${st.cls}`}
+        style={{ opacity: revealStatus ? 1 : 0 }}
       >
         {st.label}
       </span>

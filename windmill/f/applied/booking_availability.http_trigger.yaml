@@ -1,0 +1,11 @@
+summary: Booking availability
+route_path: applied/availability
+http_method: get
+request_type: sync
+authentication_method: none
+workspaced_route: false
+wrap_body: false
+raw_string: false
+is_flow: false
+script_path: f/applied/booking_availability
+is_static_website: false

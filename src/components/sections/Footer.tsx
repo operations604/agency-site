@@ -1,5 +1,5 @@
 import Logo from "../nav/Logo";
-import { openCalendly } from "../../lib/calendly";
+import { goToBooking } from "../../lib/goto-booking";
 
 const LINKS = [
   { label: "What we build", href: "#what-we-build" },
@@ -46,7 +46,9 @@ export default function Footer() {
             Get started
           </span>
           <button
-            onClick={() => openCalendly()}
+            type="button"
+            aria-haspopup="dialog"
+            onClick={goToBooking}
             className="inline-flex w-fit items-center rounded-xl bg-primary px-5 py-3 text-[15px] font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Book a call

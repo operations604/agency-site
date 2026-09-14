@@ -1,98 +1,143 @@
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+// Softer than the site-wide EASE (expo-out), which is ~90% done a third of the way in.
+// This ramps in gradually and settles without snapping.
+const GLIDE = [0.4, 0, 0.2, 1] as const;
 import { STEPS } from "../../content/timeline";
 
+// Each icon's width as a fraction of --u, taken from its size in the mockup.
+// The source art has different proportions per icon, so one shared box would squash them.
 const ICONS = [
-  "/timeline/phone.png",
-  "/timeline/search.png",
-  "/timeline/clipboard.png",
-  "/timeline/wrench.png",
-  "/timeline/puzzle.png",
-  "/timeline/rocket.png",
+  { src: "/timeline/phone.png", w: 0.0775 },
+  { src: "/timeline/search.png", w: 0.072 },
+  { src: "/timeline/clipboard.png", w: 0.068 },
+  { src: "/timeline/wrench.png", w: 0.0753 },
+  { src: "/timeline/puzzle.png", w: 0.1001 },
+  { src: "/timeline/rocket.png", w: 0.0666 },
 ] as const;
 
-export default function BuildTimeline() {
-  const section = useRef<HTMLElement>(null);
-  const [on, setOn] = useState(false);
+const stepIn = {
+  hidden: { opacity: 0, x: 24 },
+  show: { opacity: 1, x: 0, transition: { duration: 0.85, ease: GLIDE } },
+};
 
-  useEffect(() => {
-    const el = section.current;
+export default function BuildTimeline() {
+  const list = useRef<HTMLOListElement>(null);
+  const reduced = !!useReducedMotion();
+  const [railBox, setRailBox] = useState({ top: 24, bottom: 24 });
+
+  useLayoutEffect(() => {
+    const el = list.current;
     if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setOn(true);
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setOn(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.25 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
+    const sync = () => {
+      const nums = el.querySelectorAll(".hiw-num");
+      const first = nums[0]?.getBoundingClientRect();
+      const last = nums[nums.length - 1]?.getBoundingClientRect();
+      const box = el.getBoundingClientRect();
+      if (!first || !last) return;
+      setRailBox({
+        top: first.top + first.height / 2 - box.top,
+        bottom: box.bottom - (last.top + last.height / 2),
+      });
+    };
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   return (
-    <section
-      id="how-it-works"
-      ref={section}
-      className={`hiw relative bg-background py-20 sm:py-28${on ? " hiw-in" : ""}`}
-    >
+    <section id="how-it-works" className="hiw relative bg-background">
       <div aria-hidden className="hiw-glow" />
+      <div aria-hidden className="section-dots" />
 
-      <div className="relative mx-auto grid max-w-[1120px] items-start gap-10 px-5 sm:px-8 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-16 xl:gap-20">
-        <div className="lg:pt-2">
-          <p className="hiw-kicker mb-2 font-mono-label text-[11px] text-primary">How it works</p>
-          <h2 className="hiw-title max-w-[440px] text-[1.85rem] leading-[1.08] sm:text-[2.55rem]">
-            From first call to live system.
-          </h2>
-          <p className="hiw-lead mt-4 max-w-[420px] text-[17px] leading-[1.55] text-muted-foreground">
-            Two conversations, a fixed price, then we build on your real data.
-          </p>
-        </div>
+      <div className="hiw-stage">
+        <div className="hiw-frame">
+          <motion.div
+            className="hiw-copy"
+            initial={reduced ? { opacity: 0 } : { opacity: 0, x: -22 }}
+            whileInView={{ opacity: 1, x: 0, transition: { duration: 0.9, ease: GLIDE } }}
+            viewport={{ once: true, amount: 0.4 }}
+          >
+            <p className="hiw-kicker font-mono-label">How it works</p>
+            <h2 className="hiw-title">
+              From first call
+              <br />
+              to live system.
+            </h2>
+            <p className="hiw-lead">
+              Two conversations, a fixed price,
+              <br />
+              then we build on your real data.
+            </p>
+          </motion.div>
 
-        <div className="hiw-panel relative">
-          <ol className="hiw-list relative">
-            <span aria-hidden className="hiw-rail">
-              <i />
-            </span>
-            {STEPS.map((step, i) => {
-              const live = i === STEPS.length - 1;
-              return (
-                <li
-                  key={step.title}
-                  className={`hiw-step relative grid grid-cols-[36px_minmax(0,1fr)_96px] items-center gap-x-5 py-[18px] sm:grid-cols-[36px_minmax(0,1fr)_104px]${
-                    live ? " hiw-live" : ""
-                  }`}
-                  style={{ ["--hiw-d" as string]: `${250 + i * 100}ms` }}
-                >
-                  <span
-                    className={`hiw-num relative z-[1] grid h-9 w-9 place-items-center rounded-full text-[14px] font-semibold ${
-                      live
-                        ? "bg-primary text-primary-foreground shadow-[0_2px_8px_hsl(222_84%_53%/0.35)]"
-                        : "bg-white text-primary shadow-[0_1px_3px_#151a2814,inset_0_0_0_1.5px_hsl(220_16%_88%)]"
-                    }`}
+          <div className="hiw-panel">
+            <motion.ol
+              ref={list}
+              className="hiw-list"
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.25 }}
+              variants={{
+                hidden: {},
+                show: { transition: { staggerChildren: 0.13, delayChildren: 0.12 } },
+              }}
+            >
+              <span
+                aria-hidden
+                className="hiw-rail"
+                style={{ top: railBox.top, bottom: railBox.bottom }}
+              >
+                <motion.i
+                  initial={{ scaleY: reduced ? 1 : 0 }}
+                  whileInView={{
+                    scaleY: 1,
+                    transition: { duration: 1.5, ease: GLIDE, delay: 0.05 },
+                  }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  style={{ transformOrigin: "50% 0%" }}
+                />
+              </span>
+
+              {STEPS.map((step, i) => {
+                const live = i === STEPS.length - 1;
+                return (
+                  <motion.li
+                    key={step.title}
+                    className={`hiw-step${live ? " hiw-live" : ""}`}
+                    variants={reduced ? { hidden: { opacity: 0 }, show: { opacity: 1 } } : stepIn}
                   >
-                    {i + 1}
-                  </span>
-                  <div className="min-w-0">
-                    <h3 className="text-[17px] font-semibold tracking-tight text-foreground sm:text-[18px]">
-                      {step.title}
-                    </h3>
-                    <p className="mt-1 text-[14px] leading-[1.5] text-muted-foreground">{step.desc}</p>
-                  </div>
-                  <div className="hiw-ico-cell grid h-[80px] w-[80px] place-items-center justify-self-end sm:h-[88px] sm:w-[88px]">
-                    <img src={ICONS[i]} alt="" className="hiw-ico max-h-full max-w-full object-contain" />
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
+                    {live && <span aria-hidden className="hiw-live-fill" />}
+                    <span className={`hiw-num${live ? " hiw-num-live" : ""}`}>{i + 1}</span>
+                    <div className="hiw-copy-block">
+                      <h3>{step.title}</h3>
+                      <p>{step.desc}</p>
+                    </div>
+                    <img
+                      className="hiw-ico"
+                      src={ICONS[i].src}
+                      alt=""
+                      style={{ ["--iw" as string]: ICONS[i].w }}
+                    />
+                  </motion.li>
+                );
+              })}
+            </motion.ol>
 
-          <div className="hiw-robot" aria-hidden>
-            <img src="/timeline/robot.png" alt="" />
+            <motion.div
+              className="hiw-robot"
+              aria-hidden
+              initial={reduced ? { opacity: 0 } : { opacity: 0, x: 22 }}
+              whileInView={{
+                opacity: 1,
+                x: 0,
+                transition: { duration: 0.9, ease: GLIDE, delay: 0.7 },
+              }}
+              viewport={{ once: true, amount: 0.2 }}
+            >
+              <img src="/timeline/robot.png" alt="" />
+            </motion.div>
           </div>
         </div>
       </div>

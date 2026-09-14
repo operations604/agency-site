@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "node --watch server/index.mjs",
     "build": "tsc -b && vite build",
+    "start": "node server/index.mjs",
     "lint": "oxlint",
     "preview": "vite preview"
   },
@@ -19,6 +21,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "framer-motion": "^13.1.1",
     "lucide-react": "^1.39.0",
+    "postgres": "^3.4.9",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "tailwindcss": "^4.3.3"

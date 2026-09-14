@@ -1,0 +1,26 @@
+summary: Applied booking create
+description: Insert Applied_Bookings.bookings and optionally email a Meet link
+kind: script
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    startsAt:
+      type: string
+      originalType: string
+    timezone:
+      type: string
+      originalType: string
+    locale:
+      type: string
+      originalType: string
+    lead:
+      type: object
+      originalType: object
+    context:
+      type: object
+      originalType: object
+    body:
+      type: object
+      originalType: object
+  required: []

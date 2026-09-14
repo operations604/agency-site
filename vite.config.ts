@@ -15,6 +15,11 @@ export default defineConfig({
     host: true,
     port: 5173,
     strictPort: true,
+    proxy: {
+      "/availability": "http://127.0.0.1:8080",
+      "/bookings": "http://127.0.0.1:8080",
+      "/health": "http://127.0.0.1:8080",
+    },
   },
   build: {
     rollupOptions: {

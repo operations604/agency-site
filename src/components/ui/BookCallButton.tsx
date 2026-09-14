@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
-import { openCalendly } from "../../lib/calendly";
+import { goToBooking } from "../../lib/goto-booking";
+
+// Opens the booking popup. Visual design stays here; click behaviour lives
+// in goToBooking so nav, hero, pricing, and footer buttons match.
 
 type Props = {
   children: ReactNode;
@@ -28,7 +31,8 @@ export default function BookCallButton({
       whileTap={{ scale: tapScale }}
       transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
       className={`${base} ${look} ${className}`}
-      onClick={() => openCalendly()}
+      aria-haspopup="dialog"
+      onClick={goToBooking}
     >
       {children}
     </motion.button>

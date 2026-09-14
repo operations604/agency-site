@@ -1,0 +1,104 @@
+.mobile-shell section[id] {
+  scroll-margin-top: 72px;
+}
+
+.mobile-live h2,
+.mobile-live p {
+  text-align: center;
+}
+
+.mobile-live .mb-2.flex {
+  justify-content: center;
+}
+
+.mobile-live p.mt-4 {
+  margin-inline: auto;
+}
+
+/* How it works → live feed: one field, no cut line. */
+.mobile-shell #how-it-works {
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+}
+
+.mobile-shell #how-it-works .hiw-stage {
+  padding-bottom: 0;
+}
+
+.mobile-shell #how-it-works .hiw-panel {
+  padding-bottom: 6.25rem;
+}
+
+.mobile-shell .hiw-glow {
+  display: none;
+}
+
+.mobile-shell .feed-stage {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.mobile-shell .mobile-live {
+  position: relative;
+  z-index: 0;
+  margin-top: -1.25rem;
+}
+
+.mobile-shell .mobile-live > section {
+  padding-top: 1.75rem;
+  padding-bottom: 3.5rem;
+  overflow: visible;
+}
+
+.mobile-shell #how-it-works .section-dots {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 16%,
+    #000 100%
+  );
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 100%);
+}
+
+.mobile-shell .mobile-live .section-dots {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 72%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(to bottom, #000 0%, #000 72%, transparent 100%);
+}
+
+/* Pricing → booking: calendar sits on the same field, not in a card. */
+.mobile-shell #pricing {
+  padding-bottom: 1.25rem;
+}
+
+.mobile-shell #pricing .section-dots {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 72%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(to bottom, #000 0%, #000 72%, transparent 100%);
+}
+
+.mobile-shell #book {
+  padding-top: 0;
+  padding-bottom: 3.5rem;
+}
+
+.mobile-shell .booking-plate {
+  margin-top: 1.5rem;
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 0;
+}

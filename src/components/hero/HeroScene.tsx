@@ -28,7 +28,7 @@ export default function HeroScene() {
   }, []);
 
   return (
-    <div ref={ref} className={`relative${live ? " scene-live" : ""}`}>
+    <div ref={ref} className={`relative min-w-0${live ? " scene-live" : ""}`}>
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 -bottom-[45vh] overflow-hidden [mask-image:linear-gradient(to_bottom,black_62%,transparent)]"

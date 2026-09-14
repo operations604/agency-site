@@ -1,0 +1,23 @@
+summary: Applied booking availability
+description: Open intro-call slots from Applied_Bookings.bookings
+kind: script
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    from:
+      type: string
+      description: Range start (UTC ISO)
+      originalType: string
+    to:
+      type: string
+      description: Range end (UTC ISO)
+      originalType: string
+    timezone:
+      type: string
+      description: Visitor timezone
+      originalType: string
+  required:
+    - from
+    - to
+    - timezone

@@ -10,7 +10,7 @@ import {
 } from "framer-motion";
 import { stageScroll } from "../../lib/stage-scroll";
 import PreviewCard from "../ui/PreviewCard";
-import { SATELLITE_CARDS } from "../previews/Satellites";
+import { CalendarCard, SATELLITE_CARDS, SmsCard } from "../previews/Satellites";
 import LeadPipeline from "../previews/LeadPipeline";
 import InvoiceExtraction from "../previews/InvoiceExtraction";
 import OpsDashboard from "../previews/OpsDashboard";
@@ -150,7 +150,8 @@ const FINAL_SLOTS = [
 // enters from; x/y are the resting slot (relative to the stage anchor).
 const SATELLITES = [
   { id: "slack", x: "-2vw", y: "-51vh", r: 2, w: 340, d: 0, drift: -3, from: { x: "-2vw", y: "-95vh" } },
-  { id: "calendar", x: "2vw", y: "30vh", r: -2, w: 360, d: 0.006, drift: -7, from: { x: "2vw", y: "85vh" } },
+  // Lower than the centred close copy so the seated mascot never covers the subtitle.
+  { id: "calendar", x: "2vw", y: "33vh", r: -2, w: 360, d: 0.006, drift: -7, from: { x: "2vw", y: "88vh" } },
   // These four sit over the inner corners of the big windows.
   { id: "quickbooks", x: "-17vw", y: "-24vh", r: 4, w: 320, d: 0.012, drift: -5, from: { x: "-95vw", y: "-24vh" } },
   { id: "docusign", x: "17vw", y: "-23vh", r: -4, w: 320, d: 0.018, drift: -4, from: { x: "95vw", y: "-23vh" } },
@@ -489,15 +490,31 @@ function Satellite({ p, sat, i }: { p: P; sat: (typeof SATELLITES)[number]; i: n
   const rotate = useTransform(p, [t1, at, at + FLY], [sat.r, sat.r * 3, sat.r]);
   const scale = useTransform(p, [t1, at, at + FLY], [1, 0.9, 1]);
   const opacity = useTransform(p, [t0, t1, at, at + FLY * 0.5], [WAIT, 0, 0, 1]);
+  const isStory = sat.id === "calendar" || sat.id === "sms";
+  const [play, setPlay] = useState(false);
+  useMotionValueEvent(p, "change", (v) => {
+    if (!isStory || play) return;
+    if (v >= FINAL + 0.04 + FLY) setPlay(true);
+  });
+  useLayoutEffect(() => {
+    if (!isStory) return;
+    if (p.get() >= FINAL + 0.04 + FLY) setPlay(true);
+  }, [p, isStory]);
   const Card = SATELLITE_CARDS[sat.id];
   return (
     <div
-      className="pointer-events-none absolute left-1/2 top-[63%] -translate-x-1/2 -translate-y-1/2"
-      style={{ width: sat.w, zIndex: 15 }}
+      className="pointer-events-none absolute left-1/2 top-[63%] -translate-x-1/2 -translate-y-1/2 overflow-visible"
+      style={{ width: sat.w, zIndex: sat.id === "calendar" ? 16 : 15 }}
     >
       <motion.div style={{ x, y, rotate, scale, opacity, ...GPU }}>
-        <div className="stage-float" style={{ animationDelay: `${-i * 1.1 - 0.6}s` }}>
-          <Card />
+        <div className="stage-float overflow-visible" style={{ animationDelay: `${-i * 1.1 - 0.6}s` }}>
+          {sat.id === "calendar" ? (
+            <CalendarCard play={play} />
+          ) : sat.id === "sms" ? (
+            <SmsCard play={play} />
+          ) : (
+            <Card />
+          )}
         </div>
       </motion.div>
     </div>

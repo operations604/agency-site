@@ -1,25 +1,47 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { sectionVariants, itemVariants } from "../../lib/animations";
-import { CALENDLY_URL, loadCalendly } from "../../lib/calendly";
+import { BOOKING_OPEN_EVENT } from "../../lib/goto-booking";
+
+// The calendar is the heaviest thing below the fold, so it stays out of the
+// initial bundle and mounts when the section nears the viewport.
+const BookingCalendar = lazy(() => import("../booking/BookingCalendar"));
 
 function Skeleton() {
-  // Unboxed placeholder mimicking the calendar-only widget, sitting directly
-  // on the page background so nothing looks like a card while loading.
   return (
-    <div className="absolute inset-0 z-10 bg-background pt-10">
-      <div className="mx-auto max-w-[420px] px-6">
-        <div className="mx-auto h-6 w-52 animate-pulse rounded-md bg-muted" />
-        <div className="mx-auto mt-8 h-5 w-36 animate-pulse rounded bg-muted/70" />
-        <div className="mt-6 grid grid-cols-7 gap-3">
-          {Array.from({ length: 35 }).map((_, i) => (
+    <div aria-hidden className="grid gap-8 min-[900px]:grid-cols-[1fr_288px] min-[900px]:gap-0">
+      <div className="min-[900px]:pr-8">
+        <div className="flex items-center justify-between">
+          <div className="h-6 w-40 animate-pulse rounded-md bg-muted" />
+          <div className="flex gap-1">
+            <div className="h-9 w-9 animate-pulse rounded-lg bg-muted" />
+            <div className="h-9 w-9 animate-pulse rounded-lg bg-muted" />
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-7 gap-1">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div
+              key={`h-${i}`}
+              className="mx-auto h-3 w-7 animate-pulse rounded bg-muted/70"
+            />
+          ))}
+          {Array.from({ length: 42 }).map((_, i) => (
             <div
               key={i}
-              className="aspect-square animate-pulse rounded-full bg-muted/60"
+              className="mx-auto my-0.5 h-10 w-10 animate-pulse rounded-full bg-muted/60"
             />
           ))}
         </div>
-        <div className="mx-auto mt-8 h-4 w-40 animate-pulse rounded bg-muted/70" />
+        <div className="mt-5 h-5 w-52 animate-pulse rounded bg-muted/70" />
+      </div>
+      <div className="border-t border-border pt-6 min-[900px]:border-l min-[900px]:border-t-0 min-[900px]:pl-8 min-[900px]:pt-0">
+        <div className="h-6 w-44 animate-pulse rounded-md bg-muted" />
+        <div className="mt-1.5 h-3 w-24 animate-pulse rounded bg-muted/70" />
+        <div className="mt-4 grid gap-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-11 animate-pulse rounded-xl bg-muted" />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -27,97 +49,40 @@ function Skeleton() {
 
 export default function Booking() {
   const sectionRef = useRef<HTMLElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [nearViewport, setNearViewport] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Don't pull in Calendly's widget until the visitor scrolls close to the
-  // booking section. Keeps the heavy third-party script off the initial load.
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
+
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
-          setNearViewport(true);
+          setMounted(true);
           io.disconnect();
         }
       },
       { rootMargin: "200px 0px" },
     );
     io.observe(el);
-    return () => io.disconnect();
-  }, []);
 
-  useEffect(() => {
-    if (!nearViewport) return;
-    let cancelled = false;
-    let pollId: number | undefined;
-    let timeoutId: number | undefined;
-
-    const reveal = () => {
-      if (!cancelled) setLoaded(true);
+    const open = () => {
+      setMounted(true);
+      io.disconnect();
     };
-
-    loadCalendly()
-      .then(() => {
-        const container = containerRef.current;
-        if (cancelled || !container) return;
-
-        // StrictMode re-runs this effect in dev; clear any widget from the
-        // previous run so we never stack two iframes.
-        container.replaceChildren();
-        try {
-          // hide_event_type_details: the section heading already introduces
-          // the call, so skip Calendly's own header block.
-          // background_color: match the page background (hsl(220 40% 98%)).
-          // resize: let Calendly size the iframe to its content so nothing
-          // scrolls or gets cut off inside the widget.
-          window.Calendly!.initInlineWidget({
-            url: `${CALENDLY_URL}?primary_color=2563EB&hide_gdpr_banner=1&hide_event_type_details=1&background_color=f7f8fc`,
-            parentElement: container,
-            resize: true,
-          });
-        } catch {
-          reveal();
-          return;
-        }
-
-        // Calendly appends its iframe synchronously, so it should exist
-        // already; poll briefly as a safety net, and reveal once the iframe
-        // has actually loaded its content.
-        const hookIframe = (iframe: HTMLIFrameElement) => {
-          iframe.addEventListener("load", reveal, { once: true });
-        };
-        const iframe = container.querySelector("iframe");
-        if (iframe) {
-          hookIframe(iframe);
-        } else {
-          pollId = window.setInterval(() => {
-            const found = containerRef.current?.querySelector("iframe");
-            if (found) {
-              window.clearInterval(pollId);
-              hookIframe(found);
-            }
-          }, 100);
-        }
-        // Last-resort fallback: never leave the skeleton up forever.
-        timeoutId = window.setTimeout(reveal, 4000);
-      })
-      .catch(reveal);
+    window.addEventListener(BOOKING_OPEN_EVENT, open);
 
     return () => {
-      cancelled = true;
-      window.clearInterval(pollId);
-      window.clearTimeout(timeoutId);
+      io.disconnect();
+      window.removeEventListener(BOOKING_OPEN_EVENT, open);
     };
-  }, [nearViewport]);
+  }, []);
 
   return (
     <section
       id="book"
       ref={sectionRef}
-      className="bg-background py-20 sm:py-28"
+      className="relative bg-background py-20 sm:py-28"
     >
       <motion.div
         variants={sectionVariants}
@@ -139,23 +104,17 @@ export default function Booking() {
           30 minutes. We will tell you what we can do for you to make more
           money.
         </motion.p>
-        {/* No card chrome: the widget sits directly on the page background.
-            Kept narrow on purpose — below ~650px Calendly renders its
-            borderless layout, so the widget has no internal card frame. */}
         <motion.div
           variants={itemVariants}
-          className="relative mx-auto mt-6 w-full max-w-[640px]"
+          className="booking-plate relative mx-auto mt-10 w-full max-w-[880px] overflow-hidden rounded-[22px] px-5 py-7 text-left sm:px-8 sm:py-8"
         >
-          {!loaded && <Skeleton />}
-          {/* Always visible so Calendly measures a real width at init time;
-              the skeleton overlays it until the iframe finishes loading.
-              With resize:true Calendly sets the iframe height to fit its
-              content, so the min-height (skeleton room) is only kept while
-              loading to avoid an empty gap afterwards. */}
-          <div
-            ref={containerRef}
-            className={loaded ? "w-full" : "min-h-[700px] w-full"}
-          />
+          {mounted ? (
+            <Suspense fallback={<Skeleton />}>
+              <BookingCalendar />
+            </Suspense>
+          ) : (
+            <Skeleton />
+          )}
         </motion.div>
       </motion.div>
     </section>

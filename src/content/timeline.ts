@@ -36,8 +36,3 @@ export const STEPS: Step[] = [
     at: 1,
   },
 ];
-
-export const TRAVEL = 1.15;
-export const HOLD = 1.85;
-export const END_HOLD = 2.8;
-export const FADE = 0.55;

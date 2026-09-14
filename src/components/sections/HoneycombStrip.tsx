@@ -270,7 +270,7 @@ export default function HoneycombStrip() {
   return (
     <section
       id="connections"
-      className="relative -mt-[22vh] pb-6 pt-10"
+      className="relative -mt-[22vh] overflow-x-clip pb-6 pt-10"
       style={{
         background: "linear-gradient(to bottom, transparent, hsl(220 40% 98%) 40%)",
       }}

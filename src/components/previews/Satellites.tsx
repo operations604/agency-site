@@ -56,32 +56,56 @@ export function SlackCard() {
   );
 }
 
-export function CalendarCard() {
+type DeskStoryProps = {
+  play?: boolean;
+  compact?: boolean;
+};
+
+export function CalendarCard({ play = false, compact = false }: DeskStoryProps) {
   return (
-    <Frame logo="google-calendar" title="Thursday, Sep 11">
-      <div className="grid grid-cols-[34px_1fr] gap-x-2 px-3 py-2.5">
-        {[
-          { t: "1 PM", ev: null },
-          { t: "2 PM", ev: { title: "Roof quote · Lena Ortiz", sub: "410 Nueces St · booked by agent", color: "222 84% 53%" } },
-          { t: "3 PM", ev: { title: "Water heater swap", sub: "Crew: Omar K.", color: "174 62% 40%" } },
-        ].map((row) => (
-          <div key={row.t} className="contents">
-            <Mono className="pt-1 text-right text-[hsl(222_10%_55%)]">{row.t}</Mono>
-            <div className="min-h-[34px] border-t border-[hsl(220_20%_92%)] py-1">
-              {row.ev && (
-                <div
-                  className="rounded-md border-l-[3px] px-2 py-1"
-                  style={{ borderColor: `hsl(${row.ev.color})`, background: `hsl(${row.ev.color} / 0.08)` }}
-                >
-                  <div className="text-[11px] font-semibold text-[hsl(223_14%_10%)]">{row.ev.title}</div>
-                  <div className="text-[10px] text-[hsl(222_10%_45%)]">{row.ev.sub}</div>
-                </div>
-              )}
+    <div
+      className="desk-calendar relative overflow-visible"
+      data-await={compact ? undefined : ""}
+      data-play={play ? "" : undefined}
+      data-compact={compact ? "" : undefined}
+    >
+      <Frame logo="google-calendar" title="Thursday, Sep 11">
+        <div className="grid grid-cols-[34px_1fr] gap-x-2 px-3 py-2.5">
+          {[
+            { t: "1 PM", ev: null as { title: string; sub: string; color: string; booked?: boolean } | null },
+            { t: "2 PM", ev: { title: "Roof quote · Lena Ortiz", sub: "410 Nueces St · booked by agent", color: "222 84% 53%", booked: true } },
+            { t: "3 PM", ev: { title: "Water heater swap", sub: "Crew: Omar K.", color: "174 62% 40%" } },
+          ].map((row) => (
+            <div key={row.t} className="contents">
+              <Mono className="pt-1 text-right text-[hsl(222_10%_55%)]">{row.t}</Mono>
+              <div className="min-h-[34px] border-t border-[hsl(220_20%_92%)] py-1">
+                {row.ev && (
+                  <div
+                    className={`relative rounded-md border-l-[3px] px-2 py-1${row.ev.booked ? " desk-appt" : ""}`}
+                    style={{ borderColor: `hsl(${row.ev.color})`, background: `hsl(${row.ev.color} / 0.08)` }}
+                  >
+                    {row.ev.booked && <span aria-hidden className="desk-appt-flash" />}
+                    <div className="relative text-[11px] font-semibold text-[hsl(223_14%_10%)]">{row.ev.title}</div>
+                    <div className="relative text-[10px] text-[hsl(222_10%_45%)]">{row.ev.sub}</div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-    </Frame>
+          ))}
+        </div>
+      </Frame>
+      {/*
+        Dispatch pose, mirrored: left hand on the calendar, right hand pointing
+        at the SMS card. Rendered outside Frame so overflow:hidden cannot clip it.
+      */}
+      <img
+        src="/robots/robot-dispatch.png"
+        alt=""
+        draggable={false}
+        className="desk-mascot"
+        aria-hidden="true"
+      />
+    </div>
   );
 }
 
@@ -121,27 +145,33 @@ export function SheetsCard() {
   );
 }
 
-export function SmsCard() {
+export function SmsCard({ play = false, compact = false }: DeskStoryProps) {
   return (
-    <Frame logo="twilio" title="(415) 555-0142 · SMS">
-      <div className="space-y-2 px-3 py-3">
-        <div className="flex justify-start">
-          <div className="max-w-[86%] rounded-2xl rounded-tl-sm bg-[hsl(220_20%_94%)] px-3 py-2 text-[12px] leading-[1.4] text-[hsl(223_14%_12%)]">
-            Is the estimate from last week still valid?
+    <div
+      className="desk-sms"
+      data-await={compact ? undefined : ""}
+      data-play={play ? "" : undefined}
+    >
+      <Frame logo="twilio" title="(415) 555-0142 · SMS">
+        <div className="space-y-2 px-3 py-3">
+          <div className="desk-sms-bubble flex justify-start">
+            <div className="max-w-[86%] rounded-2xl rounded-tl-sm bg-[hsl(220_20%_94%)] px-3 py-2 text-[12px] leading-[1.4] text-[hsl(223_14%_12%)]">
+              Is the estimate from last week still valid?
+            </div>
+          </div>
+          <div className="desk-sms-bubble flex justify-end">
+            <div className="max-w-[86%] rounded-2xl rounded-tr-sm bg-[hsl(222_84%_53%)] px-3 py-2 text-[12px] leading-[1.4] text-white">
+              Yes, valid through Sep 30. Want me to book the crew for Tuesday?
+            </div>
+          </div>
+          <div className="desk-sms-bubble flex justify-start">
+            <div className="max-w-[86%] rounded-2xl rounded-tl-sm bg-[hsl(220_20%_94%)] px-3 py-2 text-[12px] text-[hsl(223_14%_12%)]">
+              Yes please
+            </div>
           </div>
         </div>
-        <div className="flex justify-end">
-          <div className="max-w-[86%] rounded-2xl rounded-tr-sm bg-[hsl(222_84%_53%)] px-3 py-2 text-[12px] leading-[1.4] text-white">
-            Yes, valid through Sep 30. Want me to book the crew for Tuesday?
-          </div>
-        </div>
-        <div className="flex justify-start">
-          <div className="max-w-[86%] rounded-2xl rounded-tl-sm bg-[hsl(220_20%_94%)] px-3 py-2 text-[12px] text-[hsl(223_14%_12%)]">
-            Yes please
-          </div>
-        </div>
-      </div>
-    </Frame>
+      </Frame>
+    </div>
   );
 }
 

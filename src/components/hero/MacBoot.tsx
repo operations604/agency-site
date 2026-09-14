@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import CompanyDashboard from "../dashboard/CompanyDashboard";
+import type { DemoStage } from "../../lib/demo-stage";
 
 const STAGES = [
   { at: 0, label: "Connecting workspace" },
@@ -26,10 +27,27 @@ function BrandRow() {
   );
 }
 
-export default function MacBoot({ ready }: { ready: boolean }) {
-  const reduced = !!useReducedMotion();
+export default function MacBoot({
+  ready,
+  reduced: reducedProp,
+  stage,
+  paused = false,
+  statusReady = true,
+  pipeStep = 0,
+  onApp,
+}: {
+  ready: boolean;
+  reduced?: boolean;
+  stage: DemoStage;
+  paused?: boolean;
+  statusReady?: boolean;
+  pipeStep?: number;
+  onApp?: () => void;
+}) {
+  const reducedHook = !!useReducedMotion();
+  const reduced = reducedProp ?? reducedHook;
   const [play, setPlay] = useState(reduced);
-  const [stage, setStage] = useState(reduced ? STAGES.length - 1 : 0);
+  const [bootStage, setBootStage] = useState(reduced ? STAGES.length - 1 : 0);
   const [app, setApp] = useState(reduced);
   const [spinning, setSpinning] = useState(!reduced);
   const spinnerRef = useRef<SVGSVGElement>(null);
@@ -44,7 +62,7 @@ export default function MacBoot({ ready }: { ready: boolean }) {
   useEffect(() => {
     if (!play || reduced) return;
     const timers = STAGES.slice(1).map((s, i) =>
-      window.setTimeout(() => setStage(i + 1), s.at),
+      window.setTimeout(() => setBootStage(i + 1), s.at),
     );
     return () => timers.forEach(clearTimeout);
   }, [play, reduced]);
@@ -55,7 +73,7 @@ export default function MacBoot({ ready }: { ready: boolean }) {
       setApp(true);
       return;
     }
-    if (!play || stage !== STAGES.length - 1) return;
+    if (!play || bootStage !== STAGES.length - 1) return;
     const halt = window.setTimeout(() => {
       const el = spinnerRef.current;
       if (el) el.style.transform = getComputedStyle(el).transform;
@@ -66,11 +84,15 @@ export default function MacBoot({ ready }: { ready: boolean }) {
       window.clearTimeout(halt);
       window.clearTimeout(go);
     };
-  }, [play, stage, reduced]);
+  }, [play, bootStage, reduced]);
+
+  useEffect(() => {
+    if (app) onApp?.();
+  }, [app, onApp]);
 
   return (
     <div
-      className={`hairline soft-shadow-lg flex aspect-[16/10] min-h-[240px] flex-col overflow-hidden rounded-2xl bg-white${play ? " boot-play" : ""}`}
+      className={`hairline soft-shadow-lg flex aspect-[16/10] min-w-0 w-full flex-col overflow-hidden rounded-2xl bg-white${play ? " boot-play" : ""}`}
     >
       <div className="flex h-7 shrink-0 items-center border-b border-[hsl(38_21%_90%)] bg-[hsl(220_24%_96%)] px-3">
         <div className="flex items-center gap-[6px]" aria-hidden>
@@ -98,7 +120,13 @@ export default function MacBoot({ ready }: { ready: boolean }) {
             transition={{ duration: 0.4, ease: EASE }}
             className="absolute inset-0"
           >
-            <CompanyDashboard reduced={reduced} />
+            <CompanyDashboard
+              reduced={reduced}
+              stage={stage}
+              paused={paused}
+              statusReady={statusReady}
+              pipeStep={pipeStep}
+            />
           </motion.div>
         )}
         <AnimatePresence>
@@ -147,14 +175,14 @@ export default function MacBoot({ ready }: { ready: boolean }) {
               <div className="relative mt-3 h-5 w-full max-w-[240px] overflow-hidden text-center">
                 <AnimatePresence>
                   <motion.p
-                    key={play ? STAGES[stage].label : "wait"}
+                    key={play ? STAGES[bootStage].label : "wait"}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: play ? 1 : 0, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.22, ease: EASE }}
                     className="absolute inset-x-0 font-mono-label text-[11px] text-[hsl(222_10%_45%)]"
                   >
-                    {STAGES[stage].label}
+                    {STAGES[bootStage].label}
                   </motion.p>
                 </AnimatePresence>
               </div>
