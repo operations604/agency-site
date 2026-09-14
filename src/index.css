@@ -830,17 +830,17 @@
 }
 
 .desk-calendar[data-compact] .desk-mascot-seat {
-  right: 16px;
-  bottom: calc(100% - 36px);
-  width: 88px;
-  height: 100px;
+  right: 14px;
+  bottom: calc(100% - 4px);
+  width: 0;
+  height: 0;
 }
 
 .desk-calendar[data-compact] .desk-mascot {
-  right: -6px;
-  bottom: -4px;
-  width: 128px;
-  height: 128px;
+  right: -18px;
+  bottom: -32px;
+  width: 156px;
+  height: 156px;
 }
 
 @keyframes bootSpin {

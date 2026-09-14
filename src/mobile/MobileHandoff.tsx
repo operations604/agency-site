@@ -28,7 +28,7 @@ const WAIT = 1 / 255;
 const FLY = 0.055;
 const RISE = 0.05;
 const EXIT = 0.03;
-const PARK_SCALE = 0.5;
+const PARK_SCALE = 0.58;
 const STAGE_CENTER = { x: 50, y: 63 };
 
 type Item = {
@@ -89,26 +89,20 @@ const PARK = [
   { x: "-36vw", y: "18vh", r: 2 },
   { x: "36vw", y: "18vh", r: -2 },
 ];
-// Same desk as the mockup, read top to bottom on a phone: the two big app
-// windows across the top with the other two stacked behind them, then the
-// copy, then the leads / calendar / messages band. Everything stays inside
-// (or only just past) the frame instead of scattering off both edges.
 const FINAL_SLOTS = [
-  { x: "-30vw", y: "-38vh", r: -4, s: 0.74, drift: -2, z: 13 },
-  { x: "30vw", y: "-38vh", r: 4, s: 0.74, drift: -2, z: 13 },
-  { x: "-36vw", y: "-45vh", r: -9, s: 0.42, drift: -1, z: 9 },
-  { x: "36vw", y: "-45vh", r: 9, s: 0.42, drift: -1, z: 9 },
+  { x: "-28vw", y: "-46vh", r: -4, s: 0.52, drift: -2, z: 12 },
+  { x: "28vw", y: "-44vh", r: 4, s: 0.52, drift: -2, z: 12 },
+  { x: "-36vw", y: "-54vh", r: -8, s: 0.34, drift: -1, z: 9 },
+  { x: "36vw", y: "-52vh", r: 8, s: 0.34, drift: -1, z: 9 },
 ];
 
-// vw widths, so the band scales with the phone rather than overflowing a
-// small one. Calendar and SMS share a drift to hold the arrow's aim.
 const SATELLITES = [
-  { id: "slack", x: "0vw", y: "-44vh", r: 2, w: "min(76vw, 300px)", d: 0, drift: -2, from: { x: "0vw", y: "-90vh" } },
-  { id: "calendar", x: "-8vw", y: "27vh", r: -2, w: "min(62vw, 245px)", d: 0.006, drift: -2, from: { x: "-8vw", y: "90vh" } },
-  { id: "quickbooks", x: "-21vw", y: "-31vh", r: 4, w: "min(56vw, 220px)", d: 0.012, drift: -2, from: { x: "-90vw", y: "-31vh" } },
-  { id: "docusign", x: "21vw", y: "-29vh", r: -4, w: "min(56vw, 220px)", d: 0.018, drift: -2, from: { x: "90vw", y: "-29vh" } },
-  { id: "sheets", x: "-25vw", y: "14vh", r: 2, w: "min(60vw, 240px)", d: 0.024, drift: -2, from: { x: "-90vw", y: "14vh" } },
-  { id: "sms", x: "26vw", y: "7vh", r: -3, w: "min(56vw, 225px)", d: 0.03, drift: -2, from: { x: "90vw", y: "7vh" } },
+  { id: "slack", x: "0vw", y: "-50vh", r: 2, w: "min(86vw, 360px)", d: 0, drift: -2, from: { x: "0vw", y: "-90vh" } },
+  { id: "calendar", x: "0vw", y: "16vh", r: -2, w: "min(88vw, 340px)", d: 0.006, drift: -2, from: { x: "0vw", y: "90vh" } },
+  { id: "quickbooks", x: "-20vw", y: "-34vh", r: 4, w: "min(72vw, 290px)", d: 0.012, drift: -2, from: { x: "-90vw", y: "-34vh" } },
+  { id: "docusign", x: "20vw", y: "-32vh", r: -4, w: "min(72vw, 290px)", d: 0.018, drift: -2, from: { x: "90vw", y: "-32vh" } },
+  { id: "sheets", x: "-16vw", y: "-8vh", r: 2, w: "min(82vw, 320px)", d: 0.024, drift: -2, from: { x: "-90vw", y: "-8vh" } },
+  { id: "sms", x: "18vw", y: "-10vh", r: -2, w: "min(80vw, 320px)", d: 0.03, drift: -2, from: { x: "90vw", y: "-10vh" } },
 ] as const;
 
 const CHIPS = [
@@ -151,7 +145,7 @@ function Stage() {
 
   const [fit, setFit] = useState(1);
   useEffect(() => {
-    const sync = () => setFit(Math.min(1, (window.innerHeight * 0.42) / 540));
+    const sync = () => setFit(Math.min(1, (window.innerHeight * 0.52) / 540));
     sync();
     window.addEventListener("resize", sync);
     return () => window.removeEventListener("resize", sync);
@@ -303,7 +297,7 @@ function Window({
   return (
     <div
       className="pointer-events-none absolute left-1/2 top-[63%] -translate-x-1/2 -translate-y-1/2"
-      style={{ width: "min(94vw, 520px)", zIndex: f.z }}
+      style={{ width: "min(96vw, 560px)", zIndex: f.z }}
     >
       <motion.div
         style={{
@@ -319,7 +313,7 @@ function Window({
         }}
       >
         <div className="stage-float" style={{ animationDelay: `${-i * 1.7}s` }}>
-          <PreviewCard className="max-h-[54dvh]">
+          <PreviewCard className="max-h-[64dvh]">
             <div className="relative flex items-center border-b border-border bg-[hsl(220_24%_96%)] px-3 py-2">
               <div className="flex gap-1.5">
                 <span className="size-2.5 rounded-full bg-[#ff5f57]" />
@@ -357,7 +351,7 @@ function Satellite({ p, sat, i }: { p: P; sat: (typeof SATELLITES)[number]; i: n
       className="pointer-events-none absolute left-1/2 top-[63%] -translate-x-1/2 -translate-y-1/2 overflow-visible"
       style={{
         width: sat.w,
-        zIndex: sat.id === "calendar" ? 16 : 15,
+        zIndex: sat.id === "calendar" ? 20 : sat.id === "sms" ? 19 : sat.id === "sheets" ? 18 : 15,
       }}
     >
       <motion.div style={{ x, y, rotate, scale, opacity, ...GPU }}>
@@ -429,7 +423,7 @@ function Beat({
   return (
     <div
       className={`pointer-events-none absolute inset-x-0 z-30 flex justify-center px-5 ${
-        mark ? "top-[36%]" : center ? "inset-y-0 items-center" : "top-[18%]"
+        mark ? "top-[12%]" : center ? "inset-y-0 items-center" : "top-[16%]"
       }`}
     >
       <motion.div
