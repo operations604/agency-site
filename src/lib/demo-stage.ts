@@ -19,10 +19,10 @@ export const POSE_CROSSFADE_S = 0.2;
 export const ENTRANCE_MS = 450;
 
 export const POSE_SRC: Record<DemoStage, string> = {
-  overview: "/robots/robot-overview.png",
-  pipeline: "/robots/robot-pipeline.png",
-  dispatch: "/robots/robot-dispatch.png",
-  complete: "/robots/robot-complete.png",
+  overview: "/robots/robot-overview.webp",
+  pipeline: "/robots/robot-pipeline.webp",
+  dispatch: "/robots/robot-dispatch.webp",
+  complete: "/robots/robot-complete.webp",
 };
 
 /** Per-pose seat calibration. Images share a hip origin; these nudge leftover margin. */

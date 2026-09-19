@@ -18,7 +18,7 @@ const JOIN_AT = 0.975;
 // tail, so any app is in exactly one cell or in the pool - never two cells.
 const APPS = [
   "stripe", "shopify", "hubspot", "salesforce", "quickbooks", "gmail", "slack",
-  "google-sheets", "notion", "airtable", "calendly", "asana", "pipedrive", "xero",
+  "google-sheets", "notion", "airtable", "asana", "pipedrive", "xero",
   "zoom", "microsoft-teams", "intercom", "zendesk", "twilio", "docusign",
   "mailchimp", "openai", "github", "figma", "dropbox", "paypal", "square",
   "klaviyo", "sendgrid", "typeform", "google-drive", "google-calendar", "clickup",
@@ -69,7 +69,7 @@ function Cell({
     if (!next) return;
     free.push(cur.current);
     cur.current = next;
-    if (img.current) img.current.src = `/logos/${next}.png`;
+    if (img.current) img.current.src = `/logos/${next}.webp`;
   }, [free]);
 
   useEffect(() => {
@@ -103,7 +103,7 @@ function Cell({
           <div ref={face} className="comb-face">
             <img
               ref={img}
-              src={`/logos/${cur.current}.png`}
+              src={`/logos/${cur.current}.webp`}
               alt=""
               width={36}
               height={36}

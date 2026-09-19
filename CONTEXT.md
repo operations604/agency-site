@@ -24,9 +24,8 @@ Vite 8 + React 19 + TypeScript + Tailwind CSS v4 + Framer Motion.
 
 - Theme, fonts, shared animation CSS: `src/index.css`
 - Fonts: **Inter**, **Inter Tight**, **JetBrains Mono**
-- Calendly: `src/lib/calendly.ts`
 - Lucide is aliased to `src/lib/icons.ts` — **do not delete that alias**
-- Lint: `oxlint`. Build: `tsc -b && vite build`
+- Lint: `oxlint`. Build: `tsc -b && vite build && node server/compress-static.mjs`
 
 ### Brand tokens
 
@@ -87,8 +86,9 @@ src/components/nav/                        Nav, Logo
 src/components/hero/                       Hero, HeroScene, MacBoot, MeshField
 src/components/dashboard/CompanyDashboard.tsx  keep as one file
 src/components/ui/                         BookCallButton, PreviewCard
-src/lib/                                   calendly.ts, animations.ts, icons.ts
-public/logos/                              PNG tiles
+src/lib/                                   booking-api.ts, animations.ts, icons.ts
+public/logos/                              lossless WebP tiles used by the site
+source-assets/                             original PNG source artwork, not deployed
 public/favicon.svg
 .lavish/process-directions.html            Lavish review board
 .lavish/graphics.js
@@ -151,5 +151,5 @@ Static Vite site (`npm run build` → `dist/`). User has a Hostinger VPS and a S
 - Edit `agency-site-base`
 - Split `CompanyDashboard.tsx`
 - Touch HeroScene or HandoffStage unless asked
-- Change Calendly, brand, or pricing unless asked
+- Change brand or pricing unless asked
 - Commit or push unless asked

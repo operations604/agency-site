@@ -23,7 +23,7 @@ function Frame({
   return (
     <div className="hairline soft-shadow-lg overflow-hidden rounded-2xl bg-white">
       <div className="flex items-center gap-2 border-b border-[hsl(220_20%_92%)] bg-[hsl(220_24%_97%)] px-3 py-2">
-        <img src={`/logos/${logo}.png`} alt="" width={14} height={14} className="h-3.5 w-3.5 object-contain" />
+        <img src={`/logos/${logo}.webp`} alt="" width={14} height={14} className="h-3.5 w-3.5 object-contain" />
         <span className="text-[11px] font-medium text-[hsl(222_10%_35%)]">{title}</span>
       </div>
       {children}
@@ -99,7 +99,7 @@ export function CalendarCard({ play = false, compact = false }: DeskStoryProps) 
       </div>
       <span className="desk-mascot-seat" aria-hidden="true">
         <img
-          src="/robots/robot-dispatch.png"
+          src="/robots/robot-dispatch.webp"
           alt=""
           draggable={false}
           className="desk-mascot"

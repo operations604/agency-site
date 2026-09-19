@@ -223,6 +223,7 @@ export default function HandoffStage() {
 
 function Stage() {
   const ref = useRef<HTMLElement>(null);
+  const [nearby, setNearby] = useState(true);
   // Same as ["start end", "end end"], but spelled so it does not match one of
   // Framer's ViewTimeline presets. The native ScrollTimeline path turns each
   // useTransform range into WAAPI keyframes, and keyframes that begin after
@@ -236,6 +237,15 @@ function Stage() {
   useLayoutEffect(() => {
     stageScroll.set(raw.get());
   }, [raw]);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => setNearby(entry.isIntersecting), {
+      rootMargin: "50% 0px",
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
   // A stiff, well-damped spring between the scroll position and the scene.
   // It smooths wheel steps into continuous motion without noticeable lag.
   const p = useSpring(raw, { stiffness: 620, damping: 58, mass: 0.4, restDelta: 0.0002 });
@@ -268,7 +278,7 @@ function Stage() {
       id="what-we-build"
       // pointer-events-none because the section overlaps the hero's tail; the
       // previews re-enable pointer events on themselves.
-      className="pointer-events-none relative"
+      className={`pointer-events-none relative${nearby ? "" : " render-idle"}`}
       style={{ height: `${STAGE_VH}vh`, marginTop: `-${OVERLAP_VH}vh` }}
     >
       <div className="sticky top-0 h-screen overflow-hidden">
@@ -685,7 +695,7 @@ function Chip({ p, chip }: { p: P; chip: (typeof CHIPS)[number] }) {
         style={{ opacity, scale, y, ...GPU }}
       >
         <img
-          src={`/logos/${chip.slug}.png`}
+          src={`/logos/${chip.slug}.webp`}
           alt=""
           width={22}
           height={22}

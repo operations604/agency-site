@@ -8,12 +8,12 @@ import { STEPS } from "../../content/timeline";
 // Each icon's width as a fraction of --u, taken from its size in the mockup.
 // The source art has different proportions per icon, so one shared box would squash them.
 const ICONS = [
-  { src: "/timeline/phone.png", w: 0.0775 },
-  { src: "/timeline/search.png", w: 0.072 },
-  { src: "/timeline/clipboard.png", w: 0.068 },
-  { src: "/timeline/wrench.png", w: 0.0753 },
-  { src: "/timeline/puzzle.png", w: 0.1001 },
-  { src: "/timeline/rocket.png", w: 0.0666 },
+  { src: "/timeline/phone.webp", w: 0.0775 },
+  { src: "/timeline/search.webp", w: 0.072 },
+  { src: "/timeline/clipboard.webp", w: 0.068 },
+  { src: "/timeline/wrench.webp", w: 0.0753 },
+  { src: "/timeline/puzzle.webp", w: 0.1001 },
+  { src: "/timeline/rocket.webp", w: 0.0666 },
 ] as const;
 
 const stepIn = {
@@ -136,7 +136,7 @@ export default function BuildTimeline() {
               }}
               viewport={{ once: true, amount: 0.2 }}
             >
-              <img src="/timeline/robot.png" alt="" />
+              <img src="/timeline/robot.webp" alt="" />
             </motion.div>
           </div>
         </div>

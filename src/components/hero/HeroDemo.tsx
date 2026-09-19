@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   PIPE_BEATS_MS,
+  POSE_SRC,
   STAGE_MS,
+  STAGE_ORDER,
   STATUS_REVEAL_MS,
   nextStage,
   type DemoStage,
@@ -38,21 +40,15 @@ export default function HeroDemo({ ready, reduced }: Props) {
       return;
     }
     let n = 0;
-    const srcs = [
-      "/robots/robot-overview.png",
-      "/robots/robot-pipeline.png",
-      "/robots/robot-dispatch.png",
-      "/robots/robot-complete.png",
-    ];
-    srcs.forEach((src) => {
+    STAGE_ORDER.forEach((pose) => {
       const img = new Image();
       const done = () => {
         n += 1;
-        if (n >= srcs.length) setAssetsReady(true);
+        if (n >= STAGE_ORDER.length) setAssetsReady(true);
       };
       img.onload = done;
       img.onerror = done;
-      img.src = src;
+      img.src = POSE_SRC[pose];
     });
   }, [reduced]);
 

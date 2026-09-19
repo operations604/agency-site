@@ -69,11 +69,45 @@ async function serveStatic(urlPath, res) {
     return;
   }
   try {
-    const data = await readFile(file);
-    res.writeHead(200, {
+    const extension = extname(file);
+    const accepts = String(res.req.headers["accept-encoding"] || "");
+    const compressible = new Set([".css", ".html", ".js", ".json", ".svg", ".txt"]);
+    let data;
+    let encoding;
+
+    if (compressible.has(extension) && accepts.includes("br")) {
+      try {
+        data = await readFile(`${file}.br`);
+        encoding = "br";
+      } catch {
+        data = await readFile(file);
+      }
+    } else if (compressible.has(extension) && accepts.includes("gzip")) {
+      try {
+        data = await readFile(`${file}.gz`);
+        encoding = "gzip";
+      } catch {
+        data = await readFile(file);
+      }
+    } else {
+      data = await readFile(file);
+    }
+
+    const isHtml = extension === ".html";
+    const isHashedAsset = urlPath.startsWith("/assets/");
+    const headers = {
       "content-type": MIME[extname(file)] || "application/octet-stream",
-    });
-    res.end(data);
+      "content-length": data.byteLength,
+      "cache-control": isHtml
+        ? "no-cache"
+        : isHashedAsset
+          ? "public, max-age=31536000, immutable"
+          : "public, max-age=86400, stale-while-revalidate=604800",
+      vary: "Accept-Encoding",
+    };
+    if (encoding) headers["content-encoding"] = encoding;
+    res.writeHead(200, headers);
+    res.end(res.req.method === "HEAD" ? undefined : data);
   } catch {
     if (extname(urlPath.split("?")[0])) {
       res.writeHead(404);
@@ -82,8 +116,12 @@ async function serveStatic(urlPath, res) {
     }
     try {
       const index = await readFile(join(dist, "index.html"));
-      res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-      res.end(index);
+      res.writeHead(200, {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": index.byteLength,
+        "cache-control": "no-cache",
+      });
+      res.end(res.req.method === "HEAD" ? undefined : index);
     } catch {
       res.writeHead(503);
       res.end("Site build missing");

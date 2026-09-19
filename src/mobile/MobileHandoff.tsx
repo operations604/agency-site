@@ -133,6 +133,7 @@ export default function MobileHandoff() {
 
 function Stage() {
   const ref = useRef<HTMLElement>(null);
+  const [nearby, setNearby] = useState(true);
   const { scrollYProgress: raw } = useScroll({
     target: ref,
     offset: ["start 100%", "end 100%"],
@@ -141,6 +142,15 @@ function Stage() {
   useLayoutEffect(() => {
     stageScroll.set(raw.get());
   }, [raw]);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => setNearby(entry.isIntersecting), {
+      rootMargin: "50% 0px",
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
   const p = useSpring(raw, { stiffness: 620, damping: 58, mass: 0.4, restDelta: 0.0002 });
 
   const [fit, setFit] = useState(1);
@@ -164,7 +174,7 @@ function Stage() {
     <section
       ref={ref}
       id="what-we-build"
-      className="pointer-events-none relative"
+      className={`pointer-events-none relative${nearby ? "" : " render-idle"}`}
       style={{ height: `${STAGE_VH}vh`, marginTop: `-${OVERLAP_VH}vh` }}
     >
       <div className="sticky top-0 h-[100dvh] overflow-hidden">
@@ -505,7 +515,7 @@ function Chip({ p, chip }: { p: P; chip: (typeof CHIPS)[number] }) {
         style={{ opacity, scale, y, ...GPU }}
       >
         <img
-          src={`/logos/${chip.slug}.png`}
+          src={`/logos/${chip.slug}.webp`}
           alt=""
           width={18}
           height={18}

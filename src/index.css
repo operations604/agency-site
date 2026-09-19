@@ -103,6 +103,7 @@
 
 .comb-paused .comb-card {
   animation-play-state: paused;
+  will-change: auto;
 }
 
 /* Wrapper fills the cell (Safari: height:100% of auto = 0). Parked off to
@@ -677,6 +678,14 @@
 .scene-offscreen .mesh-blob,
 .scene-offscreen .aurora-band {
   animation-play-state: paused !important;
+}
+
+.scene-offscreen [style*="will-change"] {
+  will-change: auto !important;
+}
+
+.render-idle [style*="will-change"] {
+  will-change: auto !important;
 }
 @keyframes inkFill {
   to {

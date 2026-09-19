@@ -14,10 +14,16 @@ npm run preview  # serve the production build locally
 npm run lint     # oxlint
 ```
 
+`npm run build` also writes precompressed Brotli and gzip variants for text
+assets. `server/index.mjs` serves those variants with immutable caching for
+hashed build files.
+
+Lossless WebP files used by the site live under `public/logos/`,
+`public/timeline/`, and `public/robots/`. Their original PNG source files are
+kept outside the deployed public directory under `source-assets/`.
+
 ## Make it yours
 
-- **Calendly**: set `CALENDLY_URL` in `src/lib/calendly.ts` to your real
-  Calendly link. Both the popup buttons and the inline booking embed use it.
 - **Brand name / logo**: `src/components/nav/Logo.tsx` and the favicon in
   `public/favicon.svg`.
 - **Contact email**: `src/components/sections/Footer.tsx`.

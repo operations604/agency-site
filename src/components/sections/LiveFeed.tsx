@@ -109,7 +109,7 @@ function ResultRow({ row }: { row: Extract<Row, { kind: "result" }> }) {
     <div className="hairline grid grid-cols-[22px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-xl bg-card px-3 py-2.5 text-[13px]">
       <span className="grid h-[22px] w-[22px] place-items-center rounded-md bg-[hsl(220_20%_94%)]">
         <img
-          src={`/logos/${row.logo}.png`}
+          src={`/logos/${row.logo}.webp`}
           alt=""
           width={14}
           height={14}
@@ -273,7 +273,6 @@ export default function LiveFeed() {
       <div
         aria-hidden
         className="pointer-events-none absolute -left-[140px] bottom-[-220px] h-[480px] w-[480px] rounded-full bg-primary/15 blur-[70px]"
-        style={{ willChange: "transform" }}
       />
       <div className="relative mx-auto grid max-w-[1200px] gap-12 px-5 sm:px-8 lg:grid-cols-[minmax(0,1fr)_460px] lg:gap-16">
         <div>

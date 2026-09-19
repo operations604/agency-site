@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:api": "node --watch server/index.mjs",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node server/compress-static.mjs",
     "start": "node server/index.mjs",
     "lint": "oxlint",
     "preview": "vite preview"

@@ -33,7 +33,6 @@ SLUGS = [
     "groq",
     "mistral-ai",
     "replicate",
-    "calendly",
     "twilio",
     "shopify",
     "linear",

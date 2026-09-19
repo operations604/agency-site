@@ -141,7 +141,7 @@ function BuildMoment() {
           <div key={n.logo} className="flex flex-1 items-center">
             <div className="mx-auto flex flex-col items-center gap-2">
               <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white shadow-[0_1px_3px_#151a2818] ring-1 ring-[hsl(220_20%_90%)]">
-                <img src={`/logos/${n.logo}.png`} alt="" className="h-6 w-6 object-contain" />
+                <img src={`/logos/${n.logo}.webp`} alt="" className="h-6 w-6 object-contain" />
               </span>
               <Mono className="text-muted-foreground">{n.label}</Mono>
             </div>

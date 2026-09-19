@@ -223,7 +223,7 @@ export default function BookingModal() {
         <div className="booking-glass-bar relative z-10 flex items-center justify-between gap-3 px-4 py-2 sm:px-5">
           <div className="flex min-w-0 items-center gap-2">
             <img
-              src="/robots/robot-overview.png"
+              src="/robots/robot-overview.webp"
               alt=""
               draggable={false}
               className="h-8 w-8 shrink-0 object-contain sm:h-9 sm:w-9"

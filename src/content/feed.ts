@@ -76,7 +76,7 @@ export const TURNS: FeedTurn[] = [
     prompt: "rebook Thursday's no-shows",
     results: [
       { logo: "twilio", text: "D. Park rebooked by SMS · Thursday 10:30" },
-      { logo: "calendly", text: "2 slots released back to the calendar" },
+      { logo: "google-calendar", text: "2 slots released back to the calendar" },
     ],
   },
   {
@@ -172,7 +172,7 @@ export const AMBIENT: FeedResult[] = [
   { logo: "linear", text: "Bug triaged and pointed" },
   { logo: "github", text: "Release notes drafted from merged PRs" },
   { logo: "jira", text: "Sprint report compiled" },
-  { logo: "calendly", text: "Buffer added around site visits" },
+  { logo: "google-calendar", text: "Buffer added around site visits" },
   { logo: "dropbox", text: "Photos sorted into the job folder" },
   { logo: "square", text: "Tips reconciled for payroll" },
   { logo: "paypal", text: "Refund processed · $89" },
